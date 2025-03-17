@@ -746,8 +746,8 @@ const AlbumCoverCreator = () => {
         try {
           // Get the preview canvas context
           const previewCtx = canvasRef.current.getContext('2d');
-          const previewData = previewCtx.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
-
+          // We only need the context, not the image data
+          
           console.log("Creating high-resolution canvas");
 
           // Create temporary canvas at 3000x3000 resolution
@@ -783,8 +783,8 @@ const AlbumCoverCreator = () => {
             );
           }
 
-          // Calculate scaling factor
-          const scaleFactor = highResCanvas.width / canvasRef.current.width;
+          // Calculate scaling factor (for reference, not directly used)
+          // const scaleFactor = highResCanvas.width / canvasRef.current.width;
 
           // Directly draw text at high resolution with explicit font settings
           highResCtx.fillStyle = textStyles.color;
