@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Plush Recordings - Soulful Jungle and Drum & Bass music since 2009.">
     <title>About Plush Recordings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Doto', sans-serif;
             margin: 0;
             padding: 0;
             color: #fff;
-            line-height: 1.6;
+            line-height: 1.2;
+            letter-spacing: 0.5px;
         }
         header {
             color: #fff;
@@ -19,16 +23,20 @@
             text-align: center;
         }
         header img {
-            max-width: 150px;
+            max-width: 720px;
             margin-bottom: 10px;
         }
         main {
             padding: 20px;
             max-width: 800px;
             margin: auto;
+            font-size: 1em;
         }
         h1, h2 {
             color: #fff;
+            line-height: 1.4;
+            margin-top: 1.5em;
+            margin-bottom: 1em;
         }
         a {
             color: #fe0101;
@@ -44,26 +52,36 @@
             color: #fff;
         }
         body {
-            background-image: url("https://cdn-prod-1.labelgrid.com/uploads/label-image-2_shopBgImage.jpeg");
-            background-size: cover;
             background-repeat: no-repeat;
+            background-color: #000;
         }
+
+        p { font-size: 0.5em !important; }
 
     </style>
 </head>
 <body>
     <header>
-        <img src="https://cdn-prod-1.labelgrid.com/uploads/label-image-2_image.png" alt="Plush Recordings Logo" title="Plush Recordings">
+        PLUSH.nfo<br />
+        <img src="images/plush-ascii-transparent.png" alt="Plush Recordings Logo" 
+            title="Plush Recordings" />
+        <!-- <section>
+            <p style="text-align: center;    ">
+                <a href="https://plush.bandcamp.com" target="_blank">Bandcamp</a> |
+                <a href="https://www.youtube.com/plushdnb" target="_blank">YouTube</a> |
+                <a href="https://soundcloud.com/plushrecordings" target="_blank">SoundCloud</a> |
+                <a href="https://open.spotify.com/playlist/1SxSvwwxaOIPWHsJ5Egtyp" target="_blank">Spotify</a> |
+                <a href="https://instagram.com/plushrecs" target="_blank">Instagram</a> |
+                <a href="https://x.com/plushrecs" target="_blank">X</a>
+            </p>
+        </section> -->
+
     </header>
     <main>
         <section>
-            <iframe width="100%" height="315" src="https://www.youtube.com/embed/7wJAS1-agPU?si=xn9vTUsNEAAgNT89" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-        </section>
-        <section>
             <h2>About Us</h2>
             <p>
-                Founded in 2009, **Plush Recordings** is a Denver-based record label dedicated to delivering soulful and atmospheric Jungle and Drum & Bass music.
-                With a focus on fresh sounds and innovative production, Plush Recordings has established itself as a key player in the global electronic music scene.
+                Founded in 2009, Plush Recordings is a U.S. based record label featuring a worlwide roster of talent including works by artist who push the boundaries of modern break-beat oriented music from atmospheric and ambient jungle, to retro liquid funk.  Some of our top talent includes 360 joYnt, Earl Grey, Utah Jazz, martianMan, Samurai Breaks, robbyt, Doctor Jeep, Balistik, Stunna, B Fuse, No Rules, Quentin Hiatus, and a slew of amazing artists who dedicate their life to music.
             </p>
             <p>
                 Our mission is to provide a platform for emerging and established artists to showcase their unique styles, contributing to the evolution of the Jungle and Drum & Bass genres.
@@ -71,44 +89,274 @@
             </p>
         </section>
         <section>
-            <h2>Our Music</h2>
-            <p>
-                Plush Recordings has built a rich discography over the years, including standout releases such as:
-            </p>
-            <ul>
-                <li><strong>Vybryda</strong> - <a href="https://plush.bandcamp.com/album/echoes-ep" target="_blank">Echoes EP</a></li>
-                <li><strong>Altered Perception</strong> - <a href="https://plush.bandcamp.com/album/void-ep" target="_blank">Void EP</a></li>
-                <li><strong>Shivaxi</strong> - <a href="https://plush.bandcamp.com/album/sun-daze-ambient-sphere" target="_blank">Sun Daze / Ambient Sphere</a></li>
-                <li><strong>Clima</strong> - <a href="https://plush.bandcamp.com/album/proper-thing-only-for-deep-souls" target="_blank">Proper Thing / Only For Deep Souls</a></li>
-            </ul>
+            <h2>Latest Releases</h2>
+            <style>
+                .album-grid {
+                    display: grid;
+                    grid-template-columns: repeat(5, 1fr);
+                    gap: 15px;
+                    margin-top: 20px;
+                }
+                .album-card {
+                    background-color: #1a1a1a;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    transition: transform 0.3s ease;
+                }
+                .album-card:hover {
+                    transform: translateY(-5px);
+                }
+                .album-image {
+                    width: 100%;
+                    aspect-ratio: 1/1; /* Makes it square */
+                    background-color: #333;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #666;
+                    font-size: 0.8em;
+                }
+                .album-info {
+                    padding: 10px;
+                    font-size: 0.8em;
+                }
+                .album-title {
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+                .album-artist {
+                    color: #999;
+                }
+            </style>
+            <div class="album-grid">
+                <div class="album-card">
+                    <div class="album-image">PLUSH118</div>
+                    <div class="album-info">
+                        <div class="album-title">Breakbeat Symphony</div>
+                        <div class="album-artist">360 joYnt</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <div class="album-image">PLUSH119</div>
+                    <div class="album-info">
+                        <div class="album-title">Jungle Echoes</div>
+                        <div class="album-artist">Earl Grey</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <div class="album-image">PLUSH120</div>
+                    <div class="album-info">
+                        <div class="album-title">Liquid Dreams</div>
+                        <div class="album-artist">Utah Jazz</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <div class="album-image">PLUSH121</div>
+                    <div class="album-info">
+                        <div class="album-title">Cosmic Rhythms</div>
+                        <div class="album-artist">martianMan</div>
+                    </div>
+                </div>
+                <div class="album-card">
+                    <div class="album-image">PLUSH122</div>
+                    <div class="album-info">
+                        <div class="album-title">Bass Explorations</div>
+                        <div class="album-artist">Samurai Breaks</div>
+                    </div>
+                </div>
+            </div>
         </section>
         <section>
-            <h2>Connect with Us</h2>
+            <h2>Interactive Art</h2>
             <p>
-                Explore our music and stay connected with Plush Recordings:
+                Hello everyone.  This is a message from Mike Shoebox. I am working on a series of new pixel-art animations and interactive designs (through-code), to sync to all the amazing music we are releasing on PLUSH. These interactive demos will be available strictly on this website, because this is the only way we can host them publicly in the way they were meant to be experienced. If you notice any videos on social media of me showing off these demos, make sure you click through to the website to experience them in their full glory.
+                <br /><br />My only goal with these demos is to create something cool and unique to go along with these sounds we all love so much. I hope you like them!
             </p>
-            <p>
-                <a href="https://www.youtube.com/plushdnb" target="_blank">YouTube</a> |
-                <a href="https://soundcloud.com/plushrecordings" target="_blank">SoundCloud</a> |
-                <a href="https://facebook.com/plushrecs" target="_blank">Facebook</a> |
-                <a href="https://plush.bandcamp.com" target="_blank">Bandcamp</a> |
-                <a href="https://instagram.com/plushrecs" target="_blank">Instagram</a> |
-                <a href="https://twitter.com/plushrecs" target="_blank">Twitter</a>
+            <style>
+                .art-grid {
+                    display: grid;
+                    grid-template-columns: repeat(5, 1fr);
+                    gap: 15px;
+                    margin-top: 30px;
+                }
+                .art-card {
+                    background-color: #1a1a1a;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    transition: transform 0.3s ease;
+                }
+                .art-card:hover {
+                    transform: translateY(-5px);
+                }
+                .art-image {
+                    width: 100%;
+                    height: 120px;
+                    background-color: #333;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #666;
+                    font-size: 0.8em;
+                }
+                .art-caption {
+                    padding: 10px;
+                    font-size: 0.8em;
+                    text-align: center;
+                }
+            </style>
+            <div class="art-grid">
+                <!-- Row 1 -->
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+▂▃▄▅▆▇█▇▆▅▄▃▂▂▃▄▅
+  ♪   ♫  ♪ ♫  ♪ ♫  
+█▇▆▅▄▃▂▂▃▄▅▆▇█▇▆▅
+  ♫  ♪ ♫  ♪ ♫  ♪   
+                        </pre>
+                    </div>
+                    <div class="art-caption">Drum & Bass Visualizer</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+   * . *  .  *   . * 
+ * .  * .  *  .  *  .
+.  *   * .   * .  *  
+   .  *   .  *   . * 
+*  .   *  .   *   . .
+                        </pre>
+                    </div>
+                    <div class="art-caption">Jungle Particles</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+~~~~~~~~~~~~~~~~~
+  ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+  ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+                        </pre>
+                    </div>
+                    <div class="art-caption">Audio Reactive Waves</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+     ✧      ✧     ✧   
+  ✧      ✧     ✧    
+✧      ✧     ✧      
+   ○        ○       ○ 
+ ○     ○       ○      
+                        </pre>
+                    </div>
+                    <div class="art-caption">Atmospheric Generative Art</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+▄▄▄▄  ▄  ▄▄▄▄  ▄  ▄▄▄▄
+█  █  █  █  █  █  █  █
+█  █  █  █  █  █  █  █
+▀▀▀▀  ▀  ▀▀▀▀  ▀  ▀▀▀▀
+                        </pre>
+                    </div>
+                    <div class="art-caption">Beat Mapping Visual</div>
+                </div>
+                
+                <!-- Row 2 -->
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+      /\      
+     /  \     
+    /    \    
+   /      \   
+__/        \__
+                        </pre>
+                    </div>
+                    <div class="art-caption">Pixel Landscape</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+  ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  
+ ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈ 
+≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈
+ ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈ 
+  ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  
+                        </pre>
+                    </div>
+                    <div class="art-caption">Liquid Motion</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+  ▂▃▄▅▆▇  ▇▆▅▄▃▂  
+ /|\      /|\
+  |        |  
+  |        |  
+ ▔▔▔      ▔▔▔ 
+                        </pre>
+                    </div>
+                    <div class="art-caption">Bass Physics</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+┏━┓┏━┓┏━┓┏━┓┏━┓┏━┓
+┃ ┃┃ ┃┃ ┃┃ ┃┃ ┃┃ ┃
+┗━┛┗━┛┗━┛┗━┛┗━┛┗━┛
+┏━┓┏━┓┏━┓┏━┓┏━┓┏━┓
+┗━┛┗━┛┗━┛┗━┛┗━┛┗━┛
+                        </pre>
+                    </div>
+                    <div class="art-caption">Rhythm Patterns</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.6em; line-height: 1.2; margin: 0;">
+░░░░░░░░░░░░░░░░░░
+░░░░░░▒▒▒▒░░░░░░░░
+░░░░▒▒▒▒▒▒▒▒░░░░░░
+░░░░▒▒▒▒▒▒▒▒░░░░░░
+░░░░░░▒▒▒▒░░░░░░░░
+                        </pre>
+                    </div>
+                    <div class="art-caption">Ambient Textures</div>
+                </div>
+            </div>
+        </section>
 
+        <section>
+            <h2>Inquiries</h2>
+            <p>
+                For inquiries, collaborations, or demo submissions, please contact us.
             </p>
             <p>
-                For inquiries, collaborations, or demo submissions, please contact us at:
-            </p>
-            <p>
-                <strong>Plush Recordings</strong><br>
-                c/o Mike Shoebox<br>
-                <a href="mailto:team@plushrecs.com">team@plushrecs.com</a><br>
-                <a href="https://plushrecs.com" target="_blank">https://plushrecs.com</a>
+                <strong>Mike Ramirez (@shoeboxdnb)</strong> | Plush Recordings | <a href="mailto:team@plushrecs.com">team@plushrecs.com</a><br>
             </p>
         </section>
+        <!-- <section>
+            <iframe width="100%" height="315" src="https://www.youtube.com/embed/7wJAS1-agPU?si=xn9vTUsNEAAgNT89" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </section> -->
     </main>
     <footer>
-        <p>&copy; 2024 Plush Recordings. All Rights Reserved.</p>
+        <p>&copy; 2025 KEYBRDIST INC dba Plush Recordings.  All Rights Reserved.</p>
+        <section>
+            <p style="text-align: center; font-size:0.7em; margin-top: 40px;">
+                <a href="https://plush.bandcamp.com" target="_blank">Bandcamp</a> |
+                <a href="https://www.youtube.com/plushdnb" target="_blank">YouTube</a> |
+                <a href="https://soundcloud.com/plushrecordings" target="_blank">SoundCloud</a> |
+                <a href="https://open.spotify.com/playlist/1SxSvwwxaOIPWHsJ5Egtyp" target="_blank">Spotify</a> |
+                <a href="https://instagram.com/plushrecs" target="_blank">Instagram</a> |
+                <a href="https://twitter.com/plushrecs" target="_blank">Twitter</a>
+            </p>
+        </section>
+        <section>
+            <p style="text-align: center; font-size:0.3em; margin-top: 40px;">Design &amp; Artwork: @shoeboxdnb</p>
+        </section>
     </footer>
 </body>
 </html>
