@@ -744,9 +744,9 @@ const AlbumCoverCreator = () => {
       // Use a short timeout to ensure the UI is updated before the export starts
       setTimeout(() => {
         try {
-          // Get the preview canvas context
-          const previewCtx = canvasRef.current.getContext('2d');
-          // We only need the context, not the image data
+          // We don't need to extract data from the preview canvas
+          // const previewCtx = canvasRef.current.getContext('2d');
+          // Simply create a high-resolution version directly
           
           console.log("Creating high-resolution canvas");
 
