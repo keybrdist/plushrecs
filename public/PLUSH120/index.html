@@ -190,6 +190,111 @@
             animation: none;
         }
         
+        /* Warp Drive effect notification */
+        .warp-drive-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid rgba(255, 150, 255, 0.8);
+            color: #ffccff;
+            padding: 15px 25px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            border-radius: 0px;
+            z-index: 1000;
+            text-align: center;
+            text-shadow: 0 0 8px rgba(255, 100, 255, 0.9);
+            animation: warp-notification 3s ease-in-out forwards;
+            pointer-events: none;
+            opacity: 0;
+            width: max-content;
+            max-width: 90%;
+        }
+        
+        /* Ultra Warp Drive effect notification */
+        .ultra-warp-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 5px solid rgba(100, 200, 255, 0.9);
+            color: #ccffff;
+            padding: 20px 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            border-radius: 0px;
+            z-index: 1000;
+            text-align: center;
+            text-shadow: 0 0 12px rgba(100, 200, 255, 1);
+            animation: ultra-warp-notification 3s ease-in-out forwards;
+            pointer-events: none;
+            opacity: 0;
+            width: max-content;
+            max-width: 90%;
+            letter-spacing: 2px;
+        }
+        
+        /* Fuel gauge for warp drive */
+        .warp-fuel-gauge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            z-index: 100;
+            display: none;
+        }
+        
+        .warp-fuel-level {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #ff3366, #ff66cc);
+            transform-origin: left;
+            transition: transform 0.3s ease-out;
+        }
+        
+        /* Ultrawarp fuel gauge */
+        .ultra-warp-indicator {
+            position: fixed;
+            top: 30px;
+            right: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: #33ccff;
+            text-shadow: 0 0 8px rgba(50, 200, 255, 0.8);
+            display: none;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 8px;
+            letter-spacing: 1px;
+            z-index: 100;
+            text-transform: uppercase;
+            border-left: 3px solid #33ccff;
+        }
+        
+        @keyframes warp-notification {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            30% { transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        }
+        
+        @keyframes ultra-warp-notification {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); filter: hue-rotate(0deg); }
+            15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            20% { transform: translate(-50%, -50%) scale(1.1); filter: hue-rotate(90deg); }
+            30% { transform: translate(-50%, -50%) scale(1); }
+            50% { filter: hue-rotate(180deg); }
+            70% { filter: hue-rotate(270deg); }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); filter: hue-rotate(360deg); }
+        }
+        
         .interaction-note {
             position: absolute;
             top: 60%;
@@ -509,6 +614,23 @@
         .star-cursor {
             cursor: crosshair;
         }
+        
+        /* Credits style */
+        .credits {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 8px;
+            border-radius: 3px;
+            pointer-events: none;
+            zoom: 0.5;
+        }
     </style>
 </head>
 <body onscroll="window.scrollTo(0, 0);">
@@ -571,6 +693,12 @@
             pixelSize: 4,          // Size of each "pixel" in our pixel art
             starCount: 600,        // Further increased star count for more immersive effect
             starSpeed: 0.6,        // Dramatically increased speed for faster space travel effect
+            warpDriveThreshold: 300,  // Points threshold to activate warp drive effect
+            warpDriveSpeed: 4.5,      // Speed multiplier during warp drive
+            warpDriveStretch: 8.0,    // How much stars stretch during warp drive
+            ultraWarpThreshold: 600,  // Points threshold to activate ULTRA warp drive
+            ultraWarpSpeed: 7.0,      // Speed multiplier during ULTRA warp
+            ultraWarpStretch: 32.0,   // How much stars stretch during ULTRA warp
             particleCount: 150,    // Number of particles for the breaking apart effect
             bpm: 170,              // Fallback BPM for animation sync if no audio
             beatDuration: 60000 / 170, // Duration of one beat in ms
@@ -601,6 +729,9 @@
         // Scene setup
         let scene, camera, renderer, clock;
         let cameraZoom = 5; // Initial camera zoom level
+        const cameraZoomMin = 3; // Minimum zoom (farthest distance)
+        const cameraZoomMax = 7; // Maximum zoom (closest distance)
+        const zoomCycleDuration = 60; // Complete cycle duration in seconds
         let starField, centerObject;
         let lastBeat = 0;
 
@@ -629,6 +760,22 @@
         let raycaster, mouse;
         let starExplosions = [];
         let lastPointsUpdate = 0;
+        let warpDriveActive = false;
+        let ultraWarpActive = false;
+        let warpDriveActivatedTime = 0;
+        let ultraWarpActivatedTime = 0;
+        let warpDriveEffectIntensity = 0; // 0 to 1 for transition effect
+        let ultraWarpEffectIntensity = 0; // 0 to 1 for ultrawarp transition effect
+        let lostPoints = 0; // Track how many points have been lost
+        let lastPointDeduction = 0; // Timer for point deductions
+        let pointDeductionInterval = 3; // Deduct points every 3 seconds
+        let pointDeductionAmount = 5; // Amount of points to deduct
+        let ultraPointDeductionAmount = 10; // More points deducted during ultrawarp
+        const criticalFuelPercentage = 0.01; // 1% fuel level is critical
+        const maxLostPoints = 100; // How many points can be lost before warp drive deactivates
+        let warpCooldown = false; // Flag to track if warp is on cooldown
+        let pointsAtDeactivation = 0; // Points when warp was deactivated
+        const pointsNeededForReactivation = 50; // Need to earn this many additional points
         
         // Track recent point positions to avoid overlapping
         const recentPointPositions = [];
@@ -1773,10 +1920,39 @@
         function updateCamera(deltaTime) {
             const time = clock.getElapsedTime();
             
-            // Apply camera position with zoom
-            camera.position.x = 0;
-            camera.position.y = 0;
-            camera.position.z = cameraZoom;
+            // Apply slow camera zoom cycle (60 second complete cycle)
+            // Calculate zoom based on a sine wave for smooth transitions
+            const zoomCycle = Math.sin((time / zoomCycleDuration) * Math.PI * 2);
+            // Map the -1 to 1 sine value to our zoom range
+            const cyclicZoom = cameraZoomMin + ((zoomCycle + 1) / 2) * (cameraZoomMax - cameraZoomMin);
+            
+            // Blend manual zoom with automatic cycle - weighting user's manual adjustments
+            const baseZoom = cameraZoom; // User's manual adjustment
+            const blendFactor = 0.4; // Weight of auto-zoom (lower = more responsive to manual input)
+            let actualZoom = (baseZoom * (1 - blendFactor)) + (cyclicZoom * blendFactor);
+            
+            // Add very subtle orbital motion (120 second full orbit)
+            const orbitSpeed = Math.PI * 2 / 120; // Complete orbit in 120 seconds (2 minutes)
+            let orbitRadius = 0.5; // Small radius for subtle effect
+            
+            // Modify camera behavior during warp drive
+            if (warpDriveActive) {
+                // During warp, exaggerate the zoom effect based on warp intensity
+                const warpZoomEffect = ultraWarpActive ? 0.7 : 0.3;
+                actualZoom -= warpDriveEffectIntensity * warpZoomEffect;
+                
+                // Increase orbital radius during warp
+                orbitRadius = ultraWarpActive ? 0.8 : 0.6;
+            }
+            
+            // Calculate orbital position
+            const orbitX = Math.sin(time * orbitSpeed) * orbitRadius;
+            const orbitY = Math.cos(time * orbitSpeed) * orbitRadius * 0.5; // Flatter ellipse
+            
+            // Apply camera position with zoom and orbital motion
+            camera.position.x = orbitX;
+            camera.position.y = orbitY;
+            camera.position.z = actualZoom;
             
             // Create a very slow tilting effect by shifting where the camera looks
             // Rather than moving the camera itself, we'll adjust what it's looking at
@@ -1786,9 +1962,22 @@
             
             // Calculate tilted look target
             // Start with the center object's position
-            const targetX = centerObject.position.x + time * tiltSpeed * 0.02; // Slower rightward tilt
-            const targetY = centerObject.position.y - time * tiltSpeed * 0.025; // Slower downward tilt
-            const targetZ = centerObject.position.z;
+            let targetX, targetY, targetZ;
+            
+            if (warpDriveActive) {
+                // During warp drive, introduce subtle vibration/shaking
+                const warpShakeIntensity = 0.015 * warpDriveEffectIntensity;
+                targetX = centerObject.position.x + time * tiltSpeed * 0.02 + 
+                          Math.sin(time * 15) * warpShakeIntensity;
+                targetY = centerObject.position.y - time * tiltSpeed * 0.025 + 
+                          Math.cos(time * 20) * warpShakeIntensity;
+                targetZ = centerObject.position.z;
+            } else {
+                // Normal tilting behavior
+                targetX = centerObject.position.x + time * tiltSpeed * 0.02; // Slower rightward tilt
+                targetY = centerObject.position.y - time * tiltSpeed * 0.025; // Slower downward tilt
+                targetZ = centerObject.position.z;
+            }
             
             // Create a target Vector3 with subtle organic motion - even more subtle in demo mode
             const movementFactor = demoMode ? 0.005 : 0.01; // Reduced movement factor for demo mode
@@ -1802,6 +1991,25 @@
             
             // Make the camera look at this slowly moving target
             camera.lookAt(lookTarget);
+            
+            // Warp drive additional FOV effect - increase FOV during warp
+            if (warpDriveActive || warpDriveEffectIntensity > 0) {
+                const baseFOV = 75; // Normal FOV
+                const warpFOV = 85;  // Regular warp FOV
+                const ultraFOV = 95; // Ultra warp FOV
+                
+                let targetFOV;
+                if (ultraWarpActive || ultraWarpEffectIntensity > 0) {
+                    // Interpolate between regular warp and ultra warp FOV
+                    const ultraFactor = Math.min(1, ultraWarpEffectIntensity);
+                    targetFOV = THREE.MathUtils.lerp(warpFOV, ultraFOV, ultraFactor);
+                } else {
+                    targetFOV = warpFOV;
+                }
+                
+                camera.fov = THREE.MathUtils.lerp(baseFOV, targetFOV, warpDriveEffectIntensity);
+                camera.updateProjectionMatrix();
+            }
         }
         
         
@@ -1962,9 +2170,240 @@
             const colors = starField.geometry.attributes.color;
             const starData = starField.userData.starData;
             
-            // Adjust speed factor based on mode - slower and gentler in demo mode
+            // Check cooldown status - if enough additional points have been earned
+            if (warpCooldown && (points - pointsAtDeactivation >= pointsNeededForReactivation)) {
+                warpCooldown = false;
+                
+                // Create notification for warp systems back online
+                const warpReactivation = document.createElement('div');
+                warpReactivation.className = 'warp-drive-notification';
+                warpReactivation.style.borderColor = 'rgba(0, 255, 128, 0.8)';
+                warpReactivation.style.color = '#ccffee';
+                warpReactivation.textContent = 'WARP SYSTEMS RECHARGED';
+                document.body.appendChild(warpReactivation);
+                
+                // Remove notification after animation completes
+                setTimeout(() => {
+                    warpReactivation.remove();
+                }, 3000);
+            }
+            
+            // Only check for warp activation if not on cooldown
+            if (!warpCooldown) {
+                // Check if ULTRA warp drive should be activated (higher points threshold)
+                if (points >= CONFIG.ultraWarpThreshold && !ultraWarpActive) {
+                ultraWarpActive = true;
+                warpDriveActive = true; // Regular warp is also active during ultra warp
+                ultraWarpActivatedTime = clock.elapsedTime;
+                warpDriveActivatedTime = clock.elapsedTime; // Reset regular warp timer too
+                lostPoints = 0; // Reset lost points counter
+                lastPointDeduction = clock.elapsedTime; // Reset deduction timer
+                
+                // Create notification element for ULTRA warp drive activation
+                const ultraWarpNotification = document.createElement('div');
+                ultraWarpNotification.className = 'ultra-warp-notification';
+                ultraWarpNotification.textContent = 'ULTRA WARP DRIVE ACTIVATED';
+                document.body.appendChild(ultraWarpNotification);
+                
+                // Remove notification after animation completes
+                setTimeout(() => {
+                    ultraWarpNotification.remove();
+                    
+                    // Create the ultra warp indicator
+                    const ultraWarpIndicator = document.createElement('div');
+                    ultraWarpIndicator.className = 'ultra-warp-indicator';
+                    ultraWarpIndicator.textContent = 'ULTRA WARP';
+                    ultraWarpIndicator.id = 'ultra-warp-indicator';
+                    document.body.appendChild(ultraWarpIndicator);
+                    document.getElementById('ultra-warp-indicator').style.display = 'block';
+                }, 3000);
+            }
+            // Check if regular warp drive should be activated (lower points threshold) 
+            else if (points >= CONFIG.warpDriveThreshold && !warpDriveActive) {
+                warpDriveActive = true;
+                warpDriveActivatedTime = clock.elapsedTime;
+                lostPoints = 0; // Reset lost points counter when warp drive activates
+                lastPointDeduction = clock.elapsedTime; // Reset deduction timer
+                
+                // Create notification element for warp drive activation
+                const warpNotification = document.createElement('div');
+                warpNotification.className = 'warp-drive-notification';
+                warpNotification.textContent = 'WARP DRIVE ACTIVATED';
+                document.body.appendChild(warpNotification);
+                
+                // Remove notification after animation completes
+                setTimeout(() => {
+                    warpNotification.remove();
+                }, 3000);
+                }
+            }
+            
+            // Handle point deduction and warp drive deactivation if needed
+            if (warpDriveActive) {
+                // Check if it's time to deduct points (every 3 seconds)
+                if (clock.elapsedTime - lastPointDeduction >= pointDeductionInterval) {
+                    // Determine point deduction amount (higher for ultrawarp)
+                    const deductionAmount = ultraWarpActive ? ultraPointDeductionAmount : pointDeductionAmount;
+                    
+                    // Deduct points
+                    points = Math.max(0, points - deductionAmount);
+                    lostPoints += deductionAmount; // Track how many points have been lost
+                    lastPointDeduction = clock.elapsedTime; // Reset the timer
+                    
+                    // Update the points display with a negative value
+                    const pointsDisplay = document.getElementById('points-display');
+                    if (pointsDisplay) {
+                        pointsDisplay.textContent = points;
+                        
+                        // Create a negative points notification
+                        const pointsLost = document.createElement('div');
+                        pointsLost.className = 'points-earned';
+                        pointsLost.style.color = ultraWarpActive ? '#33ccff' : '#ff5555'; // Different color for ultrawarp
+                        pointsLost.textContent = '-' + deductionAmount;
+                        
+                        // Position in the center-top of the screen
+                        pointsLost.style.left = '50%';
+                        pointsLost.style.top = '10%';
+                        pointsLost.style.transform = 'translateX(-50%)';
+                        
+                        // Animate
+                        pointsLost.style.opacity = '1';
+                        pointsLost.style.transition = 'all 2s ease-out';
+                        document.body.appendChild(pointsLost);
+                        
+                        // Remove after animation
+                        setTimeout(() => {
+                            pointsLost.style.opacity = '0';
+                            pointsLost.style.top = '5%';
+                            setTimeout(() => pointsLost.remove(), 1000);
+                        }, 1000);
+                    }
+                    
+                    // Calculate current fuel percentage
+                    const remainingFuelPercentage = 1 - (lostPoints / maxLostPoints);
+                    
+                    // Check if fuel is at critical level - step down one warp level
+                    if (remainingFuelPercentage <= criticalFuelPercentage) {
+                        // When fuel is critical, deactivate warp completely
+                        if (ultraWarpActive) {
+                            // Completely deactivate all warp modes
+                            ultraWarpActive = false;
+                            warpDriveActive = false;
+                            
+                            // Enable cooldown mode to prevent immediate reactivation
+                            warpCooldown = true;
+                            pointsAtDeactivation = points;
+                            
+                            // Remove the ultra warp indicator
+                            const indicator = document.getElementById('ultra-warp-indicator');
+                            if (indicator) indicator.remove();
+                            
+                            // Create notification for complete deactivation
+                            const ultraDeactivation = document.createElement('div');
+                            ultraDeactivation.className = 'ultra-warp-notification';
+                            ultraDeactivation.style.borderColor = 'rgba(255, 100, 0, 0.8)';
+                            ultraDeactivation.style.color = '#ffddaa';
+                            ultraDeactivation.textContent = 'ULTRA WARP DISENGAGED: NEED +' + pointsNeededForReactivation + ' POINTS';
+                            document.body.appendChild(ultraDeactivation);
+                            
+                            // Remove notification after animation completes
+                            setTimeout(() => {
+                                ultraDeactivation.remove();
+                            }, 3000);
+                            
+                            // Reset fuel level for future use
+                            lostPoints = 0;
+                        } else {
+                            // Regular warp needs to shut down
+                            warpDriveActive = false;
+                            
+                            // Enable cooldown mode to prevent immediate reactivation
+                            warpCooldown = true;
+                            pointsAtDeactivation = points;
+                            
+                            // Create notification for fuel depletion
+                            const fuelDepletion = document.createElement('div');
+                            fuelDepletion.className = 'warp-drive-notification';
+                            fuelDepletion.style.borderColor = 'rgba(255, 128, 0, 0.8)';
+                            fuelDepletion.style.color = '#ffeecc';
+                            fuelDepletion.textContent = 'WARP FUEL DEPLETED: NEED +' + pointsNeededForReactivation + ' POINTS';
+                            document.body.appendChild(fuelDepletion);
+                            
+                            // Reset fuel level for future use
+                            lostPoints = 0;
+                            
+                            // Remove notification after animation completes
+                            setTimeout(() => {
+                                fuelDepletion.remove();
+                            }, 3000);
+                        }
+                    }
+                    // Check if we've lost too many points - deactivate warp drives
+                    else if (lostPoints >= maxLostPoints) {
+                        // Check if ultra warp is active
+                        if (ultraWarpActive) {
+                            // Completely deactivate all warp modes
+                            ultraWarpActive = false;
+                            warpDriveActive = false;
+                            
+                            // Enable cooldown mode to prevent immediate reactivation
+                            warpCooldown = true;
+                            pointsAtDeactivation = points;
+                            
+                            // Remove the ultra warp indicator
+                            const indicator = document.getElementById('ultra-warp-indicator');
+                            if (indicator) indicator.remove();
+                            
+                            // Create notification for ultra warp deactivation
+                            const ultraDeactivation = document.createElement('div');
+                            ultraDeactivation.className = 'ultra-warp-notification';
+                            ultraDeactivation.style.borderColor = 'rgba(100, 150, 255, 0.8)';
+                            ultraDeactivation.style.color = '#ccddff';
+                            ultraDeactivation.textContent = 'WARP SYSTEMS OFFLINE: NEED +' + pointsNeededForReactivation + ' POINTS';
+                            document.body.appendChild(ultraDeactivation);
+                            
+                            // Remove notification after animation completes
+                            setTimeout(() => {
+                                ultraDeactivation.remove();
+                            }, 3000);
+                            
+                            // Reset fuel counter for future use
+                            lostPoints = 0;
+                        } else {
+                            // Regular warp drive deactivation
+                            warpDriveActive = false;
+                            
+                            // Create notification for warp drive deactivation
+                            const warpDeactivation = document.createElement('div');
+                            warpDeactivation.className = 'warp-drive-notification';
+                            warpDeactivation.style.borderColor = 'rgba(255, 100, 100, 0.8)';
+                            warpDeactivation.style.color = '#ffcccc';
+                            warpDeactivation.textContent = 'WARP DRIVE OFFLINE';
+                            document.body.appendChild(warpDeactivation);
+                            
+                            // Remove notification after animation completes
+                            setTimeout(() => {
+                                warpDeactivation.remove();
+                            }, 3000);
+                        }
+                    }
+                }
+            }
+            
+            // Calculate warp drive effect intensity (smooth transition over 2 seconds)
+            if (warpDriveActive) {
+                const timeSinceActivation = clock.elapsedTime - warpDriveActivatedTime;
+                warpDriveEffectIntensity = Math.min(1, timeSinceActivation / 2);
+            }
+            
+            // Adjust speed factor based on mode and warp drive status
             // This creates a more mellow, dreamy starfield effect in demo mode
-            const baseFactor = demoMode ? 0.8 : 2.5; // Reduced speed in demo mode for mellower feel
+            let baseFactor = demoMode ? 0.8 : 2.5; // Reduced speed in demo mode for mellower feel
+            
+            // Apply warp drive speed boost when active
+            if (warpDriveActive) {
+                baseFactor = baseFactor * (1 + (CONFIG.warpDriveSpeed - 1) * warpDriveEffectIntensity);
+            }
             
             for (let i = 0; i < starData.length; i++) {
                 const i3 = i * 3;
@@ -2004,7 +2443,29 @@
                 const totalTwinkle = twinkleAmount + audioInfluence + beatInfluence;
                 
                 // Update size with twinkle and audio
-                sizes.array[i] = starData[i].originalSize * (1 + totalTwinkle);
+                // During warp drive, stretch stars based on depth (further stars stretch more)
+                if (warpDriveActive) {
+                    // Calculate stretch effect based on depth and direction
+                    // Stars at different depths will stretch differently
+                    const depthStretchFactor = 1 + (0.5 + 0.5 * Math.cos(Math.abs(depthLayer.min) * 0.1)) * 
+                                                  CONFIG.warpDriveStretch * warpDriveEffectIntensity;
+                    
+                    // Horizontal stretching based on x position (further from center = more stretch)
+                    const xFromCenter = Math.abs(positions.array[i3]) / 20; // Normalized distance from center (0-1)
+                    const yFromCenter = Math.abs(positions.array[i3 + 1]) / 20;
+                    const distanceFromCenter = Math.sqrt(xFromCenter * xFromCenter + yFromCenter * yFromCenter);
+                    
+                    // Apply stretch effect primarily to stars that are further from center
+                    const centerEffect = 0.5 + 0.5 * distanceFromCenter; // 0.5-1.0 range
+                    const stretchFactor = 1 + (depthStretchFactor - 1) * centerEffect;
+                    
+                    // Apply bigger size to stretched stars, accounting for distance from center
+                    sizes.array[i] = starData[i].originalSize * 
+                                    (1 + totalTwinkle) * 
+                                    (1 + 2 * warpDriveEffectIntensity * centerEffect);
+                } else {
+                    sizes.array[i] = starData[i].originalSize * (1 + totalTwinkle);
+                }
                 
                 // Star explosions based on audio beats
                 const baseExplosionChance = CONFIG.explosionFrequency * starData[i].depthSpeedFactor;
@@ -2075,10 +2536,35 @@
         
         // Update the center object with audio reactivity
         function updateCenterObject(deltaTime, audioData) {
+            // Make the center object pulse more dramatically during warp drive
+            if (warpDriveActive) {
+                // Apply a color shift to the center object during warp drive
+                const pinkColor = new THREE.Color(0xff80ff);
+                const purpleColor = new THREE.Color(0xaa40ff);
+                const blueColor = new THREE.Color(0x4080ff);
+                
+                // Oscillate between colors during warp
+                const colorT = (Math.sin(clock.elapsedTime * 5) * 0.5 + 0.5) * warpDriveEffectIntensity;
+                let targetColor;
+                
+                if (colorT < 0.33) {
+                    targetColor = pinkColor.clone().lerp(purpleColor, colorT * 3);
+                } else if (colorT < 0.66) {
+                    targetColor = purpleColor.clone().lerp(blueColor, (colorT - 0.33) * 3);
+                } else {
+                    targetColor = blueColor.clone().lerp(pinkColor, (colorT - 0.66) * 3);
+                }
+                
+                // Apply the color to the center object material
+                centerObject.material.color.lerp(targetColor, deltaTime * 5);
+            }
+            
             // Rotation speed affected by mid-range frequencies
-            const rotSpeedX = 0.08 * (1 + audioData.mid * CONFIG.audioReactivity * 2);
-            const rotSpeedY = 0.12 * (1 + audioData.mid * CONFIG.audioReactivity * 2);
-            const rotSpeedZ = 0.05 * (1 + audioData.mid * CONFIG.audioReactivity * 2);
+            // Increase rotation during warp drive
+            let warpMultiplier = warpDriveActive ? (1 + warpDriveEffectIntensity) : 1;
+            const rotSpeedX = 0.08 * (1 + audioData.mid * CONFIG.audioReactivity * 2) * warpMultiplier;
+            const rotSpeedY = 0.12 * (1 + audioData.mid * CONFIG.audioReactivity * 2) * warpMultiplier;
+            const rotSpeedZ = 0.05 * (1 + audioData.mid * CONFIG.audioReactivity * 2) * warpMultiplier;
             
             centerObject.rotation.x += rotSpeedX * deltaTime;
             centerObject.rotation.y += rotSpeedY * deltaTime;
@@ -2306,6 +2792,19 @@
             // Get audio data
             const audioData = analyzeAudio();
             
+            // Update warp fuel display
+            updateWarpFuelDisplay();
+            
+            // Apply additional warp drive effects to audio data if active
+            if (warpDriveActive) {
+                // Enhance beat detection during warp
+                audioData.beatFactor = Math.max(audioData.beatFactor, 0.3 * warpDriveEffectIntensity);
+                // Increase overall energy during warp
+                audioData.level = Math.min(1, audioData.level * (1 + warpDriveEffectIntensity));
+            }
+            
+            // Transitions are now handled in the updateStars function for both warp types
+            
             // Update camera
             updateCamera(deltaTime);
             
@@ -2416,8 +2915,113 @@
             });
         }
         
+        // Create warp fuel gauge element function (define before it's used)
+        let warpFuelGauge = null; // Initialize variable
+        
+        function createWarpFuelGauge() {
+            const fuelGauge = document.createElement('div');
+            fuelGauge.className = 'warp-fuel-gauge';
+            
+            const fuelLevel = document.createElement('div');
+            fuelLevel.className = 'warp-fuel-level';
+            fuelGauge.appendChild(fuelLevel);
+            
+            document.body.appendChild(fuelGauge);
+            return fuelGauge;
+        }
+        
+        // Function to update warp fuel display
+        function updateWarpFuelDisplay() {
+            if (!warpFuelGauge) return;
+            
+            // Show cooldown info when warp is disabled due to critical fuel
+            if (warpCooldown) {
+                warpFuelGauge.style.display = 'block';
+                const fuelLevel = warpFuelGauge.querySelector('.warp-fuel-level');
+                if (fuelLevel) {
+                    // Show recharging animation
+                    const progress = Math.min(1, (points - pointsAtDeactivation) / pointsNeededForReactivation);
+                    fuelLevel.style.transform = `scaleX(${Math.max(0, progress)})`;
+                    fuelLevel.style.background = 'linear-gradient(to right, #00ff99, #66ffcc)';
+                    
+                    // Create recharging indicator if it doesn't exist
+                    if (!document.getElementById('warp-recharging')) {
+                        const rechargingIndicator = document.createElement('div');
+                        rechargingIndicator.className = 'warp-indicator';
+                        rechargingIndicator.textContent = 'RECHARGING: ' + Math.floor(progress * 100) + '%';
+                        rechargingIndicator.id = 'warp-recharging';
+                        document.body.appendChild(rechargingIndicator);
+                    } else {
+                        // Update the percentage
+                        const indicator = document.getElementById('warp-recharging');
+                        indicator.textContent = 'RECHARGING: ' + Math.floor(progress * 100) + '%';
+                    }
+                }
+            }
+            else if (warpDriveActive) {
+                warpFuelGauge.style.display = 'block';
+                const fuelLevel = warpFuelGauge.querySelector('.warp-fuel-level');
+                if (fuelLevel) {
+                    // Calculate remaining fuel percentage (100 - lostPoints percentage)
+                    const remainingFuel = 1 - (lostPoints / maxLostPoints);
+                    fuelLevel.style.transform = `scaleX(${Math.max(0, remainingFuel)})`;
+                    
+                    // Use ultrawarp colors if active
+                    if (ultraWarpActive) {
+                        if (remainingFuel < 0.3) {
+                            fuelLevel.style.background = 'linear-gradient(to right, #0088ff, #00aaff)';
+                        } else if (remainingFuel < 0.6) {
+                            fuelLevel.style.background = 'linear-gradient(to right, #00ccff, #33eeff)';
+                        } else {
+                            fuelLevel.style.background = 'linear-gradient(to right, #33eeff, #88ffff)';
+                        }
+                    } else {
+                        // Regular warp colors
+                        if (remainingFuel < 0.3) {
+                            fuelLevel.style.background = 'linear-gradient(to right, #ff0000, #ff3333)';
+                        } else if (remainingFuel < 0.6) {
+                            fuelLevel.style.background = 'linear-gradient(to right, #ff9900, #ffcc00)';
+                        } else {
+                            fuelLevel.style.background = 'linear-gradient(to right, #ff3366, #ff66cc)';
+                        }
+                    }
+                }
+                
+                // Check if ultrawarp indicator should be shown
+                const ultraIndicator = document.getElementById('ultra-warp-indicator');
+                if (ultraWarpActive && !ultraIndicator) {
+                    // Create the ultra warp indicator if it doesn't exist
+                    const newIndicator = document.createElement('div');
+                    newIndicator.className = 'ultra-warp-indicator';
+                    newIndicator.textContent = 'ULTRA WARP';
+                    newIndicator.id = 'ultra-warp-indicator';
+                    document.body.appendChild(newIndicator);
+                    newIndicator.style.display = 'block';
+                } else if (ultraIndicator && !ultraWarpActive) {
+                    ultraIndicator.remove();
+                }
+            } else if (!warpCooldown) {
+                warpFuelGauge.style.display = 'none';
+                
+                // Remove ultra indicator if present
+                const ultraIndicator = document.getElementById('ultra-warp-indicator');
+                if (ultraIndicator) {
+                    ultraIndicator.remove();
+                }
+                
+                // Remove recharging indicator if present
+                const rechargingIndicator = document.getElementById('warp-recharging');
+                if (rechargingIndicator) {
+                    rechargingIndicator.remove();
+                }
+            }
+        }
+        
         // Initialize the application
         init();
+        
+        // Create fuel gauge after initialization
+        warpFuelGauge = createWarpFuelGauge();
         
         // Final check to ensure scrolling is disabled
         document.addEventListener('DOMContentLoaded', function() {
@@ -2430,5 +3034,7 @@
             }, 1000);
         });
     </script>
+    <!-- Credits -->
+    <div class="credits">gfx @shoeboxdnb</div>
 </body>
 </html>
