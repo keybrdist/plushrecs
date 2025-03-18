@@ -8,27 +8,71 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <style>
-        body {
+        #center-click-area {
+            position: fixed;
+            width: 160px;
+            height: 160px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            /* Uncomment to see the area during development */
+            /* background-color: rgba(255, 0, 0, 0.2); */
+            /* border: 1px solid white; */
+            cursor: pointer;
+        }
+        
+        html, body {
             margin: 0;
-            overflow: hidden;
+            padding: 0;
+            overflow: hidden !important; /* Hide scrollbars */
+            height: 100vh;
+            width: 100vw;
+            position: fixed !important; /* Prevent scrolling */
             background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             flex-direction: column;
+            touch-action: none; /* Disable touch scrolling */
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+            overscroll-behavior: none; /* Prevent pull-to-refresh */
+            cursor: crosshair !important; /* Set crosshair cursor for entire page */
+        }
+        
+        /* Global cursor setting */
+        * {
+            cursor: crosshair !important;
+        }
+        
+        /* Exceptions for interactive elements */
+        button, .start-audio, a, .annotation, .toggle-button {
+            cursor: pointer !important;
+        }
+        
+        /* Hide scrollbars in different browsers */
+        ::-webkit-scrollbar {
+            display: none;
+            width: 0 !important;
+            height: 0 !important;
         }
         canvas {
             display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
-            width: 100% !important;
+            width: 100vw !important;
             height: 100vh !important;
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
+            right: 0;
+            bottom: 0;
             animation: subtle-pulse 15s infinite alternate ease-in-out;
             z-index: 0;
+            max-width: 100%;
+            max-height: 100%;
+            overflow: hidden;
         }
         @keyframes subtle-pulse {
             0% {
@@ -52,12 +96,18 @@
             transition: opacity 0.5s ease;
             font-size: 16px;
             line-height: 1.4;
-            width: 250px;
+            width: 300px; /* Adjusted width for square artwork */
             text-align: left;
             text-shadow: 0 0 5px rgba(0, 0, 0, 0.9);
             image-rendering: pixelated;
             white-space: nowrap;
             cursor: pointer; /* Add cursor pointer to indicate interactivity */
+            opacity: 0; /* Hide by default */
+            background: rgba(0, 0, 0, 0.8); /* Darker semi-transparent background */
+            padding: 15px;
+            border-radius: 5px;
+            backdrop-filter: blur(3px);
+            border: 1px solid rgba(255, 158, 195, 0.2); /* Subtle border */
         }
         
         /* Audio start button */
@@ -81,6 +131,56 @@
             animation: pulsate 2s infinite alternate;
             image-rendering: pixelated;
             letter-spacing: 1px;
+            white-space: nowrap; /* Prevent text wrapping */
+            width: auto; /* Allow button to size based on content */
+            max-width: 90%; /* Prevent overflow on very small screens */
+        }
+        
+        /* Mobile-first responsive adjustments for start-audio button */
+        @media screen and (max-width: 480px) {
+            .start-audio {
+                font-size: 12px;
+                padding: 15px 20px;
+                letter-spacing: 0.5px;
+                border-width: 2px;
+            }
+        }
+        
+        @media screen and (max-width: 320px) {
+            .start-audio {
+                font-size: 10px;
+                padding: 12px 16px;
+            }
+        }
+        
+        /* Responsive annotation styles */
+        @media screen and (max-width: 768px) {
+            .annotation {
+                font-size: 14px;
+                width: 220px;
+                padding: 12px;
+            }
+            
+            .annotation-title {
+                font-size: 16px;
+            }
+            
+            .annotation-subtitle {
+                font-size: 14px;
+            }
+            
+            .annotation-details {
+                font-size: 16px;
+            }
+            
+            .annotation-artwork {
+                margin-bottom: 12px;
+            }
+            
+            .annotation-artwork img {
+                width: 100%;
+                aspect-ratio: 1/1;
+            }
         }
         
         .start-audio:hover {
@@ -122,12 +222,12 @@
         
         .annotation-line {
             position: absolute;
-            background-color: rgba(255, 255, 255, 0.8);
-            height: 1px;
+            background-color: rgba(255, 158, 195, 0.8); /* Match title color */
+            height: 1.5px;
             transform-origin: 0 0;
             z-index: 4;
             pointer-events: none;
-            box-shadow: 0 0 3px rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 5px rgba(255, 158, 195, 0.7);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -146,7 +246,7 @@
         
         .annotation-title {
             font-family: 'Press Start 2P', cursive;
-            font-size: 14px;
+            font-size: 18px;
             margin-bottom: 8px;
             color: #ff9ec3;
             text-transform: uppercase;
@@ -158,7 +258,7 @@
         
         .annotation-subtitle {
             font-family: 'Press Start 2P', cursive;
-            font-size: 10px;
+            font-size: 16px;
             margin-top: 4px;
             margin-bottom: 4px;
             color: #d2ebff;
@@ -171,11 +271,65 @@
         .annotation-details {
             font-family: 'VT323', monospace;
             margin-top: 6px;
-            font-size: 16px;
+            font-size: 18px;
             opacity: 0.8;
             letter-spacing: 1px;
             image-rendering: pixelated;
             white-space: nowrap;
+            margin-bottom: 12px;
+        }
+        
+        .get-track-button {
+            display: block;
+            margin-top: 15px;
+            padding: 10px 0;
+            color: #fff;
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            text-decoration: none;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+ 
+            cursor: pointer;
+            animation: neon-pulse 1.5s infinite alternate;
+            margin-bottom: 8px;
+        }
+        
+ 
+        
+        @keyframes neon-pulse {
+            from {
+                box-shadow: 0 0 10px #00ff9c, 0 0 20px rgba(0, 255, 156, 0.5);
+            }
+            to {
+                box-shadow: 0 0 15px #00ff9c, 0 0 30px rgba(0, 255, 156, 0.7);
+            }
+        }
+        
+        .annotation-artwork {
+            margin-bottom: 15px;
+            text-align: center;
+            image-rendering: pixelated;
+            width: 100%;
+            overflow: hidden; /* Prevent image overflow */
+        }
+        
+        .annotation-artwork img {
+            width: 100%; /* Full width */
+            aspect-ratio: 1/1; /* Force square aspect ratio */
+            border: 2px solid rgba(255, 158, 195, 0.4); /* Match title color */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            object-fit: cover; /* Ensure proper image display */
+        }
+        
+        .annotation:hover .annotation-artwork img {
+            border-color: rgba(255, 158, 195, 0.7);
+            box-shadow: 0 0 20px rgba(255, 158, 195, 0.2);
         }
         .controls {
             position: absolute;
@@ -186,7 +340,7 @@
             font-family: 'VT323', monospace;
             font-size: 16px;
             letter-spacing: 1px;
-            display: flex;
+            display: none; /* Changed from flex to none to completely hide the controls */
             gap: 20px;
             align-items: center;
             flex-wrap: wrap;
@@ -198,9 +352,10 @@
             image-rendering: pixelated;
         }
         
+        /* Controls are now completely hidden with display: none
         body:hover .controls {
             opacity: 1;
-        }
+        } */
         button {
             background: #333;
             color: #fff;
@@ -243,14 +398,164 @@
         #audioVideo {
             display: none; /* Hide video element but still use it for audio */
         }
+        
+        /* Viewfinder display for points and stats */
+        .viewfinder-display {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            color: #33aaff;
+            font-family: 'Pixelify Sans', monospace;
+            z-index: 100;
+            min-width: 200px;
+            font-size: 1.1em; /* Increase text size by 10% */
+        }
+        
+        /* Points earned animation */
+        .points-earned {
+            position: fixed;
+            color: #ffcc00;
+            font-size: 18px; /* Adjusted size for Press Start 2P */
+            font-weight: bold;
+            font-family: 'Press Start 2P', cursive; /* Use Press Start 2P font */
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+            z-index: 9999;
+            opacity: 1;
+            transition: all 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Slower, more bouncy easing */
+            pointer-events: none; /* Prevent interaction with the points display */
+            will-change: transform, opacity; /* Optimize for animation performance */
+        }
+        
+        /* Responsive styles for mobile devices */
+        @media (max-width: 768px) {
+            .viewfinder-display {
+                top: 10px;
+                left: 10px;
+                padding: 10px;
+                font-size: 1em; /* Adjusted to maintain readability */
+                min-width: 150px;
+            }
+            
+            .points-earned {
+                font-size: 14px; /* Adjusted for Press Start 2P on mobile */
+            }
+            
+            .points-value {
+                font-size: 16px; /* Adjusted for Press Start 2P on mobile */
+            }
+            
+            .points-label {
+                font-size: 12px; /* Adjusted for Press Start 2P on mobile */
+            }
+            
+            .viewfinder-title {
+                font-size: 18px; /* Adjusted for mobile */
+            }
+        }
+        
+        .viewfinder-title {
+            text-align: center;
+            font-size: 20px; /* Increased by 10% from 18px */
+            margin-bottom: 10px;
+            color: #bb33ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Pixelify Sans', monospace; /* Ensure pixel font */
+        }
+        
+        .viewfinder-data {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .data-label {
+            color: #bb33ff;
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 1.1em; /* Increase text size by 10% */
+        }
+        
+        .points-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px; /* Adjusted size for Press Start 2P */
+            color: #bb33ff;
+        }
+        
+        .data-value {
+            font-weight: bold;
+            color: #33aaff;
+            text-shadow: 0 0 5px rgba(51, 170, 255, 0.8);
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 1.1em; /* Increase text size by 10% */
+        }
+        
+        .points-value {
+            font-size: 22px; /* Adjusted size for Press Start 2P */
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+            font-family: 'Press Start 2P', cursive;
+            letter-spacing: -1px; /* Tighten letter spacing slightly */
+        }
+        
+        /* Star cursor style */
+        .star-cursor {
+            cursor: crosshair;
+        }
     </style>
 </head>
-<body>
+<body onscroll="window.scrollTo(0, 0);">
+    <script>
+    // Prevent scrolling with various event handlers
+    function preventScroll(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+    
+    // Apply scroll prevention when the page loads
+    window.addEventListener('load', function() {
+        // Prevent default scrolling behavior
+        document.addEventListener('wheel', preventScroll, { passive: false });
+        document.addEventListener('touchmove', preventScroll, { passive: false });
+        document.addEventListener('keydown', function(e) {
+            // Prevent scrolling with arrow keys, space, page up/down
+            if([32, 33, 34, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+                e.preventDefault();
+                return false;
+            }
+        }, { passive: false });
+        
+        // Force scroll position to top
+        window.scrollTo(0, 0);
+    });
+    </script>
+    <!-- Viewfinder display for points -->
+    <div class="viewfinder-display">
+        <div class="viewfinder-data">
+            <div class="data-row">
+                <span class="data-label points-label">POINTS:</span>
+                <span class="data-value points-value" id="points-display">0</span>
+            </div>
+        </div>
+    </div>
+    
     <!-- Scientific annotation elements -->
     <div id="annotation" class="annotation">
+        <div class="annotation-artwork">
+            <img src="PLUSH120.jpg" alt="PLUSH120 Artwork" id="annotationArtwork">
+        </div>
         <div class="annotation-title">WITCHY & WOBBLE</div>
         <div class="annotation-subtitle">DJ AIRWALK</div>
         <div class="annotation-details">PLUSH120 • 2025</div>
+        <a href="https://plush.bandcamp.com/album/witchy-wobble" target="_blank" class="get-track-button">GET THIS TRACK</a>
     </div>
     <div id="annotationLine" class="annotation-line"></div>
     <div id="annotationDot" class="annotation-dot"></div>
@@ -281,7 +586,13 @@
                 bass: [20, 150],    // Bass frequency range
                 mid: [150, 2000],   // Mid frequency range
                 high: [2000, 16000] // High frequency range
-            }
+            },
+            // Star explosion settings
+            starExplosionParticles: 20,  // Number of particles per star explosion
+            starExplosionDuration: 1.5,  // Duration of explosion animation in seconds
+            starExplosionSpeed: 2.0,     // Speed of explosion particles
+            starPointsBase: 10,          // Base points for exploding a star
+            starPointsMultiplier: 2.0    // Multiplier for points based on star depth
         };
 
         // Calculate beat timing (fallback)
@@ -299,6 +610,8 @@
         let audioLevel = 0, smoothedLevel = 0, beatHistory = [];
         let videoElement = null;
         let demoMode = false;
+        let audioPlaying = false;
+        let annotationTimer = null;
         let demoData = {
             bassPattern: [],
             midPattern: [],
@@ -311,8 +624,21 @@
         let particleSystem;
         let particleData = [];
         
+        // Game mechanics variables
+        let points = 0;
+        let raycaster, mouse;
+        let starExplosions = [];
+        let lastPointsUpdate = 0;
+        
+        // Track recent point positions to avoid overlapping
+        const recentPointPositions = [];
+        const MAX_RECENT_POSITIONS = 5; // Number of recent positions to track
+        
         // Initialize the scene
         function init() {
+            // Create center click area for annotations
+            createCenterClickArea();
+            
             // Create main scene
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 1000); // Wider field of view
@@ -321,17 +647,37 @@
             // Create renderer
             renderer = new THREE.WebGLRenderer({ antialias: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.domElement.style.position = 'fixed';
+            renderer.domElement.style.top = '0';
+            renderer.domElement.style.left = '0';
             document.body.appendChild(renderer.domElement);
             
             // Add window resize handler
             window.addEventListener('resize', () => {
+                // Prevent any scrolling that might occur during resize
+                window.scrollTo(0, 0);
+                
+                // Update camera and renderer
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
+                
+                // Ensure renderer maintains fixed position
+                renderer.domElement.style.position = 'fixed';
+                renderer.domElement.style.top = '0';
+                renderer.domElement.style.left = '0';
             });
             
             // Setup clock for animations
             clock = new THREE.Clock();
+            
+            // Initialize raycaster and mouse for star clicking
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            // Add click event listener for star explosions
+            renderer.domElement.addEventListener('click', handleStarClick);
+            renderer.domElement.classList.add('star-cursor');
             
             // Add mouse wheel event listener for camera zoom control
             window.addEventListener('wheel', handleMouseWheel, { passive: false });
@@ -374,10 +720,27 @@
         function initializeAnnotation() {
             // Position annotation text to the left of the center object
             const annotation = document.getElementById('annotation');
-            annotation.style.top = '37%';
-            annotation.style.left = '6%';
-            annotation.style.right = 'auto';
-            annotation.style.transform = 'translateY(-50%)';
+            
+            // Position differently based on screen size
+            if (window.innerWidth <= 768) {
+                // Mobile positioning - moved down by 10%
+                annotation.style.top = '30%'; // Moved from 20% to 30% (10% lower)
+                annotation.style.left = '50%';
+                annotation.style.transform = 'translateX(-50%) translateY(-50%)';
+            } else {
+                // Desktop positioning - right side positioning - moved down by 10%
+                annotation.style.top = '35%'; // Moved from 25% to 35% (10% lower)
+                annotation.style.left = 'auto'; 
+                annotation.style.right = '13%'; // Moved left 10% (from 3% to 13%)
+                annotation.style.transform = 'translateY(-50%)';
+            }
+            
+            // Load artwork image
+            const artworkImg = document.getElementById('annotationArtwork');
+            artworkImg.onerror = function() {
+                // If artwork image fails to load, hide the container
+                document.querySelector('.annotation-artwork').style.display = 'none';
+            };
             
             // Initially position the dot and line
             const dot = document.getElementById('annotationDot');
@@ -388,58 +751,61 @@
             line.style.left = '50%';
             line.style.opacity = '0'; // Ensure line starts hidden
             
-            // Create a circular hover area around the center object
-            const hoverArea = document.createElement('div');
-            hoverArea.id = 'objectHoverArea';
-            hoverArea.style.position = 'absolute';
-            hoverArea.style.width = '200px';
-            hoverArea.style.height = '200px';
-            hoverArea.style.borderRadius = '50%';
-            hoverArea.style.zIndex = '3';
-            hoverArea.style.cursor = 'pointer';
-            hoverArea.style.background = 'transparent'; // Invisible
-            document.body.appendChild(hoverArea);
+            // Set up timer to show annotations automatically
+            setupAnnotationTimer();
             
-            // Function to position hover area around center object
-            function updateHoverAreaPosition() {
-                if (!centerObject) return;
-                const vector = new THREE.Vector3();
-                vector.setFromMatrixPosition(centerObject.matrixWorld);
-                vector.project(camera);
-                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-                const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
-                hoverArea.style.left = (x - 100) + 'px'; // Center the hover area (half of 200px width)
-                hoverArea.style.top = (y - 100) + 'px';
-            }
+            // Hover area for annotations has been removed to prevent interference with other click events
             
-            // Update the hover area position with animation
-            function animateHoverArea() {
-                updateHoverAreaPosition();
-                requestAnimationFrame(animateHoverArea);
-            }
-            animateHoverArea();
+            // Update annotation position on window resize
+            window.addEventListener('resize', function() {
+                // Position differently based on screen size
+                if (window.innerWidth <= 768) {
+                    // Mobile positioning - moved down by 10%
+                    annotation.style.top = '30%'; // Moved from 20% to 30% (10% lower)
+                    annotation.style.left = '50%';
+                    annotation.style.right = 'auto';
+                    annotation.style.transform = 'translateX(-50%) translateY(-50%)';
+                } else {
+                    // Desktop positioning - right side positioning - moved down by 10%
+                    annotation.style.top = '35%'; // Moved from 25% to 35% (10% lower)
+                    annotation.style.left = 'auto';
+                    annotation.style.right = '13%'; // Moved left 10% (from 3% to 13%)
+                    annotation.style.transform = 'translateY(-50%)';
+                }
+            });
             
-            // Also update hover area position when camera moves
-            const canvas = document.querySelector('canvas');
-            canvas.addEventListener('mousemove', updateHoverAreaPosition);
-            
-            // Show line on annotation hover
+            // Show annotation and line on hover
             annotation.addEventListener('mouseenter', () => {
                 line.style.opacity = '1';
+                annotation.style.opacity = '1';
+                
+                // Reset the auto-hide timer
+                if (annotationTimer) {
+                    clearTimeout(annotationTimer);
+                }
+                
+                // Set new timer to hide after 8 seconds
+                annotationTimer = setTimeout(() => {
+                    window.autoShowAnnotations = false;
+                    // Only hide if not being hovered
+                    if (!annotation.matches(':hover') && !document.getElementById('objectHoverArea')?.matches(':hover')) {
+                        annotation.style.opacity = '0';
+                        line.style.opacity = '0';
+                    }
+                }, 2000);
             });
             
             annotation.addEventListener('mouseleave', () => {
                 line.style.opacity = '0';
+                if (!isHoveringObject && !window.autoShowAnnotations) {
+                    annotation.style.opacity = '0';
+                }
             });
             
-            // Show line on object hover area
-            hoverArea.addEventListener('mouseenter', () => {
-                line.style.opacity = '1';
-            });
+            // Track if hovering over the object
+            let isHoveringObject = false;
             
-            hoverArea.addEventListener('mouseleave', () => {
-                line.style.opacity = '0';
-            });
+            // Hover area event listeners have been removed to prevent interference with other click events
         }
         
         // Update annotation position to point at the center object
@@ -465,8 +831,19 @@
             // Get the annotation position
             const annotation = document.getElementById('annotation');
             const annotRect = annotation.getBoundingClientRect();
-            const lineStartX = annotRect.right; // Start from right side of annotation
-            const lineStartY = annotRect.top + annotRect.height * 0.5; // middle of annotation
+            
+            let lineStartX, lineStartY;
+            
+            // Position line differently based on screen size
+            if (window.innerWidth <= 768) {
+                // Mobile - line starts from bottom of annotation
+                lineStartX = annotRect.left + annotRect.width * 0.5; // Center of annotation horizontally
+                lineStartY = annotRect.bottom; // Bottom of annotation
+            } else {
+                // Desktop - line starts from left side of annotation (since it's on the right side of screen)
+                lineStartX = annotRect.left; // Left edge of annotation
+                lineStartY = annotRect.top + annotRect.height * 0.5; // Middle of annotation vertically
+            }
             
             // Position the line
             const line = document.getElementById('annotationLine');
@@ -482,7 +859,8 @@
             if (audioContext && smoothedLevel > 0) {
                 const scaleFactor = 1 + (smoothedLevel * 0.1); // subtle pulse
                 annotation.style.transform = `translateY(-50%) scale(${scaleFactor})`;
-                line.style.height = (1 + smoothedLevel * 0.5) + 'px';
+                line.style.height = (1.5 + smoothedLevel * 1.5) + 'px'; // More pronounced effect
+                line.style.boxShadow = `0 0 ${5 + smoothedLevel * 8}px rgba(255, 158, 195, ${0.7 + smoothedLevel * 0.3})`; // Dynamic glow
             }
         }
         
@@ -505,6 +883,9 @@
                     interactionNote.style.display = 'none';
                 }, 500);
             }
+            
+            // Set audio as playing
+            audioPlaying = true;
             
             // Stop demo mode if it's running
             if (demoMode) {
@@ -649,15 +1030,35 @@
         function startDemoMode() {
             demoMode = true;
             audioInitialized = false;
+            audioPlaying = true; // Consider demo mode as playing audio
             demoData.time = 0;
             document.querySelector('.status').textContent = 'Demo mode active';
+            
+            // Set up annotation timer for demo mode
+            setupAnnotationTimer();
         }
         
         // Stop demo mode
         function stopDemoMode() {
             if (demoMode) {
                 demoMode = false;
+                audioPlaying = false; // No audio playing when demo mode stops
                 document.querySelector('.status').textContent = 'No audio connected';
+                
+                // Hide annotations when demo mode stops
+                const annotation = document.getElementById('annotation');
+                const line = document.getElementById('annotationLine');
+                if (annotation && line) {
+                    annotation.style.opacity = '0';
+                    line.style.opacity = '0';
+                }
+                
+                // Clear annotation timer
+                if (annotationTimer) {
+                    clearTimeout(annotationTimer);
+                    annotationTimer = null;
+                }
+                window.autoShowAnnotations = false;
             }
         }
         
@@ -685,7 +1086,23 @@
                 }
                 
                 audioInitialized = false;
+                audioPlaying = false;
                 document.querySelector('.status').textContent = 'No audio connected';
+                
+                // Hide annotations when audio is disconnected
+                const annotation = document.getElementById('annotation');
+                const line = document.getElementById('annotationLine');
+                if (annotation && line) {
+                    annotation.style.opacity = '0';
+                    line.style.opacity = '0';
+                }
+                
+                // Clear annotation timer
+                if (annotationTimer) {
+                    clearTimeout(annotationTimer);
+                    annotationTimer = null;
+                }
+                window.autoShowAnnotations = false;
             }
         }
         
@@ -727,6 +1144,10 @@
                     playPromise.then(() => {
                         document.querySelector('.status').textContent = 'Stream connected';
                         audioInitialized = true;
+                        audioPlaying = true;
+                        
+                        // Set up annotation timer when audio starts playing
+                        setupAnnotationTimer();
                     }).catch(error => {
                         console.error('Audio playback failed:', error);
                         
@@ -938,6 +1359,43 @@
                 const dx = event.touches[0].clientX - event.touches[1].clientX;
                 const dy = event.touches[0].clientY - event.touches[1].clientY;
                 touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+            } else if (event.touches.length === 1) {
+                // For single touches, first check if we're touching the audio button
+                const touch = event.touches[0];
+                const startAudioBtn = document.getElementById('startAudioBtn');
+                const interactionNote = document.getElementById('interactionNote');
+                
+                // If the audio button is visible and we touched it, don't process further
+                if (startAudioBtn.style.display !== 'none') {
+                    const audioRect = startAudioBtn.getBoundingClientRect();
+                    if (touch.clientX >= audioRect.left && touch.clientX <= audioRect.right &&
+                        touch.clientY >= audioRect.top && touch.clientY <= audioRect.bottom) {
+                        return; // Let the audio button's own handlers handle this
+                    }
+                    
+                    // Also check interaction note
+                    if (interactionNote.style.display !== 'none') {
+                        const noteRect = interactionNote.getBoundingClientRect();
+                        if (touch.clientX >= noteRect.left && touch.clientX <= noteRect.right &&
+                            touch.clientY >= noteRect.top && touch.clientY <= noteRect.bottom) {
+                            return; // Touched on the interaction note
+                        }
+                    }
+                }
+                
+                // Calculate touch position in normalized device coordinates
+                mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+                
+                // Update the raycaster
+                raycaster.setFromCamera(mouse, camera);
+                
+                // Check if we're touching the center object
+                const centerIntersects = raycaster.intersectObject(centerObject);
+                if (centerIntersects.length > 0) {
+                    // Prevent default to stop any further processing of this touch
+                    event.preventDefault();
+                }
             }
         }
         
@@ -964,9 +1422,339 @@
             }
         }
         
-        // Handle touch end for pinch gesture
+        // Handle touch end for pinch gesture and star clicks
         function handleTouchEnd(event) {
             isMultiTouch = false;
+            
+            // Only process single touches as clicks (not pinch/zoom gestures)
+            if (event.touches.length === 0 && !isMultiTouch) {
+                // Get the touch position
+                const touch = event.changedTouches[0];
+                const touchX = touch.clientX;
+                const touchY = touch.clientY;
+                
+                // Check if we're touching the audio button or interaction note
+                const startAudioBtn = document.getElementById('startAudioBtn');
+                const interactionNote = document.getElementById('interactionNote');
+                
+                // If the audio button is visible and we touched it, don't process as a star click
+                if (startAudioBtn.style.display !== 'none') {
+                    const audioRect = startAudioBtn.getBoundingClientRect();
+                    if (touchX >= audioRect.left && touchX <= audioRect.right &&
+                        touchY >= audioRect.top && touchY <= audioRect.bottom) {
+                        return; // Let the audio button's own handlers handle this
+                    }
+                    
+                    // Also check interaction note
+                    if (interactionNote.style.display !== 'none') {
+                        const noteRect = interactionNote.getBoundingClientRect();
+                        if (touchX >= noteRect.left && touchX <= noteRect.right &&
+                            touchY >= noteRect.top && touchY <= noteRect.bottom) {
+                            return; // Touched on the interaction note
+                        }
+                    }
+                }
+                
+                // Calculate touch position in normalized device coordinates
+                mouse.x = (touchX / window.innerWidth) * 2 - 1;
+                mouse.y = -(touchY / window.innerHeight) * 2 + 1;
+                
+                // Update the raycaster
+                raycaster.setFromCamera(mouse, camera);
+                
+                // Check if we're touching the center object
+                // Use intersectObjects with true as the second parameter to check for recursive intersections
+                // This ensures we detect touches on both the main mesh and its wireframe child
+                const centerIntersects = raycaster.intersectObjects([centerObject], true);
+                if (centerIntersects.length > 0) {
+                    // Show annotations when center object is touched
+                    const annotation = document.getElementById('annotation');
+                    const line = document.getElementById('annotationLine');
+                    if (annotation && line) {
+                        window.autoShowAnnotations = true;
+                        annotation.style.opacity = '1';
+                        line.style.opacity = '1';
+                        
+                        // Reset the auto-hide timer
+                        if (annotationTimer) {
+                            clearTimeout(annotationTimer);
+                        }
+                        
+                        // Hide annotations after 30 seconds
+                        annotationTimer = setTimeout(() => {
+                            window.autoShowAnnotations = false;
+                            // Only hide if not being hovered
+                            if (!annotation.matches(':hover') && !document.getElementById('objectHoverArea')?.matches(':hover')) {
+                                annotation.style.opacity = '0';
+                                line.style.opacity = '0';
+                            }
+                        }, 30000); // Hide after 30 seconds
+                    }
+                    return; // Don't process further touch actions
+                }
+                
+                // Create a synthetic click event
+                const clickEvent = {
+                    clientX: touchX,
+                    clientY: touchY
+                };
+                
+                // Process as a star click
+                handleStarClick(clickEvent);
+            }
+        }
+        
+        // Handle star click for explosions
+        function handleStarClick(event) {
+            // Check if we're clicking on the audio button or interaction note
+            const startAudioBtn = document.getElementById('startAudioBtn');
+            const interactionNote = document.getElementById('interactionNote');
+            
+            // If the audio button is visible and we clicked on it, don't process as a star click
+            if (startAudioBtn.style.display !== 'none') {
+                const audioRect = startAudioBtn.getBoundingClientRect();
+                if (event.clientX >= audioRect.left && event.clientX <= audioRect.right &&
+                    event.clientY >= audioRect.top && event.clientY <= audioRect.bottom) {
+                    return; // Let the audio button's own click handler handle this
+                }
+                
+                // Also check interaction note
+                if (interactionNote.style.display !== 'none') {
+                    const noteRect = interactionNote.getBoundingClientRect();
+                    if (event.clientX >= noteRect.left && event.clientX <= noteRect.right &&
+                        event.clientY >= noteRect.top && event.clientY <= noteRect.bottom) {
+                        return; // Clicked on the interaction note
+                    }
+                }
+            }
+            
+            // Store the actual cursor position for points display
+            const cursorX = event.clientX;
+            const cursorY = event.clientY;
+            
+            // Calculate mouse position in normalized device coordinates (-1 to +1)
+            mouse.x = (cursorX / window.innerWidth) * 2 - 1;
+            mouse.y = -(cursorY / window.innerHeight) * 2 + 1;
+            
+            // Update the raycaster with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Center object click handler for annotations has been removed to prevent interference with other click actions
+            
+            // Check for intersections with stars
+            const intersects = raycaster.intersectObject(starField);
+            
+            if (intersects.length > 0) {
+                // Get the index of the clicked star
+                const index = intersects[0].index;
+                const i3 = index * 3;
+                
+                // Get star position and data
+                const positions = starField.geometry.attributes.position;
+                const starData = starField.userData.starData;
+                
+                // Only allow explosion if star is visible (in front of camera)
+                if (positions.array[i3 + 2] < 5 && positions.array[i3 + 2] > -50) {
+                    // Create explosion effect
+                    createStarExplosion(positions.array[i3], positions.array[i3 + 1], positions.array[i3 + 2]);
+                    
+                    // Calculate points based on star depth (closer stars = more points)
+                    const depthFactor = Math.min(1, Math.max(0, (positions.array[i3 + 2] + 50) / 55));
+                    const starPoints = Math.floor(CONFIG.starPointsBase * (1 + depthFactor * CONFIG.starPointsMultiplier));
+                    
+                    // Add points
+                    points += starPoints;
+                    updatePointsDisplay(starPoints, cursorX, cursorY);
+                    
+                    // Reset star position
+                    const depthLayer = starData[index].depthLayer;
+                    positions.array[i3] = (Math.random() - 0.5) * 40;
+                    positions.array[i3 + 1] = (Math.random() - 0.5) * 40;
+                    positions.array[i3 + 2] = depthLayer.min; // Reset to back of its layer
+                    
+                    // Update positions
+                    positions.needsUpdate = true;
+                }
+            }
+        }
+        
+        // Create star explosion effect
+        function createStarExplosion(x, y, z) {
+            // Create explosion particles
+            const explosion = {
+                particles: [],
+                position: new THREE.Vector3(x, y, z),
+                time: 0,
+                duration: CONFIG.starExplosionDuration
+            };
+            
+            // Create particles for the explosion
+            for (let i = 0; i < CONFIG.starExplosionParticles; i++) {
+                // Random direction for particle
+                const direction = new THREE.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2
+                ).normalize();
+                
+                // Random speed
+                const speed = CONFIG.starExplosionSpeed * (0.5 + Math.random());
+                
+                // Random color (yellow to red)
+                const color = new THREE.Color().setHSL(
+                    0.05 + Math.random() * 0.1, // Hue (yellow-orange-red range)
+                    0.8 + Math.random() * 0.2,  // Saturation
+                    0.6 + Math.random() * 0.4   // Lightness
+                );
+                
+                // Add particle to explosion
+                explosion.particles.push({
+                    position: new THREE.Vector3(x, y, z),
+                    velocity: direction.multiplyScalar(speed),
+                    color: color,
+                    size: 0.1 + Math.random() * 0.2
+                });
+            }
+            
+            // Add explosion to the list
+            starExplosions.push(explosion);
+        }
+        
+        // Update points display with animation
+        function updatePointsDisplay(newPoints, clickX, clickY) {
+            const pointsDisplay = document.getElementById('points-display');
+            pointsDisplay.textContent = points;
+            
+            // Add flash effect for new points
+            pointsDisplay.style.fontSize = '28px';
+            pointsDisplay.style.textShadow = '0 0 15px rgba(255, 204, 0, 1)';
+            
+            // Function to check if a position is too close to recent positions
+            function isTooCloseToRecentPositions(x, y) {
+                const MIN_DISTANCE = 40; // Minimum distance in pixels between points
+                
+                for (const pos of recentPointPositions) {
+                    const dx = pos.x - x;
+                    const dy = pos.y - y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < MIN_DISTANCE) {
+                        return true; // Too close to an existing point
+                    }
+                }
+                
+                return false; // Not too close to any existing point
+            }
+            
+            // Generate non-overlapping random offsets
+            let randomXOffset, randomYOffset;
+            let attempts = 0;
+            const MAX_ATTEMPTS = 10; // Maximum attempts to find non-overlapping position
+            
+            do {
+                // Generate random offsets
+                randomXOffset = Math.floor(Math.random() * 60) - 30; // Wider range: -30 to 30 pixels
+                randomYOffset = Math.floor(Math.random() * 40) - 20; // Wider range: -20 to 20 pixels
+                
+                // Increase randomness with each attempt to ensure we eventually find a spot
+                if (attempts > 5) {
+                    randomXOffset *= 1.5;
+                    randomYOffset *= 1.5;
+                }
+                
+                attempts++;
+            } while (
+                attempts < MAX_ATTEMPTS && 
+                clickX && clickY && 
+                isTooCloseToRecentPositions(clickX + randomXOffset, clickY - 30 + randomYOffset)
+            );
+            
+            // Show points earned at cursor position
+            const pointsEarned = document.createElement('div');
+            pointsEarned.className = 'points-earned';
+            pointsEarned.textContent = '+' + newPoints;
+            
+            let finalX, finalY, floatDistance;
+            
+            // If click coordinates are provided, position at cursor with random offset
+            // Otherwise position near the viewfinder
+            if (clickX && clickY) {
+                // Position just above cursor with random offset
+                finalX = clickX + randomXOffset;
+                finalY = clickY - 30 + randomYOffset; // ~30px above cursor with offset
+                
+                pointsEarned.style.left = finalX + 'px';
+                pointsEarned.style.top = finalY + 'px';
+                
+                // Generate random float distance (between 80 and 120 pixels)
+                floatDistance = Math.floor(Math.random() * 40) + 80;
+                
+                // Animate points earned
+                setTimeout(() => {
+                    pointsEarned.style.top = (clickY - floatDistance + randomYOffset) + 'px'; // Float upward with random distance
+                    pointsEarned.style.opacity = '0';
+                }, 100);
+                
+                // We'll store this position in the recentPointPositions array later
+            } else {
+                // Fallback position if no coordinates (for programmatic points)
+                const viewfinder = document.querySelector('.viewfinder-display');
+                const rect = viewfinder.getBoundingClientRect();
+                
+                finalX = rect.right + 10 + randomXOffset;
+                finalY = rect.top + randomYOffset;
+                
+                pointsEarned.style.left = finalX + 'px';
+                pointsEarned.style.top = finalY + 'px';
+                
+                // Generate random float distance (between 50 and 80 pixels)
+                floatDistance = Math.floor(Math.random() * 30) + 50;
+                
+                // Animate points earned
+                setTimeout(() => {
+                    pointsEarned.style.top = (rect.top - floatDistance + randomYOffset) + 'px'; // Float upward with random distance
+                    pointsEarned.style.opacity = '0';
+                }, 100);
+            }
+            
+            // Add random rotation for more dynamic animation
+            const randomRotation = Math.floor(Math.random() * 10) - 5; // Random rotation between -5 and 5 degrees
+            pointsEarned.style.transform = `rotate(${randomRotation}deg)`;
+            
+            pointsEarned.style.opacity = '1';
+            pointsEarned.style.transition = 'all 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            document.body.appendChild(pointsEarned); // Append to body instead of viewfinder
+            
+            // Store the position for tracking
+            const positionRecord = { x: finalX, y: finalY };
+            
+            // Add to recent positions to avoid overlaps
+            recentPointPositions.push(positionRecord);
+            
+            // Limit the number of stored positions
+            if (recentPointPositions.length > MAX_RECENT_POSITIONS) {
+                recentPointPositions.shift(); // Remove oldest position
+            }
+            
+            // Remove points earned element after animation
+            setTimeout(() => {
+                pointsEarned.remove();
+                
+                // Also remove this position from tracking after animation completes
+                const index = recentPointPositions.indexOf(positionRecord);
+                if (index !== -1) {
+                    recentPointPositions.splice(index, 1);
+                }
+            }, 2600);
+            
+            // Reset display after a short delay
+            setTimeout(() => {
+                pointsDisplay.style.fontSize = '24px';
+                pointsDisplay.style.textShadow = '0 0 10px rgba(255, 204, 0, 0.8)';
+            }, 300);
+            
+            // Update last points update time
+            lastPointsUpdate = clock.elapsedTime;
         }
         
         // Handle mouse wheel for camera zoom
@@ -1015,6 +1803,7 @@
             // Make the camera look at this slowly moving target
             camera.lookAt(lookTarget);
         }
+        
         
         // Create the star field with multiple depth layers
         function createStars() {
@@ -1526,12 +2315,120 @@
             updateCenterObject(deltaTime, audioData);
             updateAnnotation(); // Update the annotation position
             
+            // Update star explosions
+            for (let i = starExplosions.length - 1; i >= 0; i--) {
+                const explosion = starExplosions[i];
+                explosion.time += deltaTime;
+                
+                if (explosion.time >= explosion.duration) {
+                    // Remove expired explosions
+                    starExplosions.splice(i, 1);
+                    continue;
+                }
+                
+                // Update explosion particles
+                for (const particle of explosion.particles) {
+                    // Update position based on velocity
+                    particle.position.x += particle.velocity.x * deltaTime;
+                    particle.position.y += particle.velocity.y * deltaTime;
+                    particle.position.z += particle.velocity.z * deltaTime;
+                    
+                    // Fade out particle over time
+                    const lifeProgress = explosion.time / explosion.duration;
+                    particle.opacity = 1 - lifeProgress;
+                }
+            }
+            
             // Render scene
             renderer.render(scene, camera);
         }
         
+        // Function to set up the annotation timer
+        function setupAnnotationTimer() {
+            // Clear any existing timer
+            if (annotationTimer) {
+                clearTimeout(annotationTimer);
+                annotationTimer = null;
+            }
+            
+            // Reset auto-show flag
+            window.autoShowAnnotations = false;
+            
+            // Only set up timer if audio is playing
+            if (audioPlaying) {
+                annotationTimer = setTimeout(() => {
+                    // Only show annotations if audio is still playing
+                    if (audioPlaying) {
+                        const annotation = document.getElementById('annotation');
+                        const line = document.getElementById('annotationLine');
+                        if (annotation && line) {
+                            window.autoShowAnnotations = true;
+                            annotation.style.opacity = '1';
+                            line.style.opacity = '1'; // Also show the line
+                            
+                            // Hide annotations after 30 seconds (increased from 10 seconds)
+                            setTimeout(() => {
+                                window.autoShowAnnotations = false;
+                                // Only hide if not being hovered
+                                if (!annotation.matches(':hover') && !document.getElementById('objectHoverArea')?.matches(':hover')) {
+                                    annotation.style.opacity = '0';
+                                    document.getElementById('annotationLine').style.opacity = '0';
+                                }
+                            }, 30000); // Hide after 30 seconds of showing
+                        }
+                    }
+                }, 120000); // Show after 8 seconds
+            }
+        }
+        
+        // Function to create the center click area for annotations
+        function createCenterClickArea() {
+            const centerClickArea = document.createElement('div');
+            centerClickArea.id = 'center-click-area';
+            document.body.appendChild(centerClickArea);
+            
+            // Add click event listener
+            centerClickArea.addEventListener('click', function(event) {
+                // Show annotations when center area is clicked
+                const annotation = document.getElementById('annotation');
+                const line = document.getElementById('annotationLine');
+                if (annotation && line) {
+                    window.autoShowAnnotations = true;
+                    annotation.style.opacity = '1';
+                    line.style.opacity = '1';
+                    
+                    // Reset the auto-hide timer
+                    if (annotationTimer) {
+                        clearTimeout(annotationTimer);
+                    }
+                    
+                    // Hide annotations after 30 seconds
+                    annotationTimer = setTimeout(() => {
+                        window.autoShowAnnotations = false;
+                        if (!annotation.matches(':hover')) {
+                            annotation.style.opacity = '0';
+                            line.style.opacity = '0';
+                        }
+                    }, 30000); // Hide after 30 seconds
+                }
+                
+                // Don't stop event propagation, allowing other click events to work
+            });
+        }
+        
         // Initialize the application
         init();
+        
+        // Final check to ensure scrolling is disabled
+        document.addEventListener('DOMContentLoaded', function() {
+            // Force scroll position to top
+            window.scrollTo(0, 0);
+            
+            // Reapply scroll prevention every second as a failsafe
+            setInterval(function() {
+                window.scrollTo(0, 0);
+            }, 1000);
+        });
     </script>
 </body>
 </html>
