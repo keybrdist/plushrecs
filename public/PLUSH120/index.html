@@ -92,8 +92,8 @@
             font-family: 'VT323', monospace;
             color: rgba(255, 255, 255, 0.9);
             z-index: 5;
-            pointer-events: auto; /* Change to auto to enable hover */
-            transition: opacity 0.5s ease;
+            pointer-events: none; /* Initially disable all pointer events */
+            transition: opacity 0.5s ease, visibility 0.5s ease;
             font-size: 16px;
             line-height: 1.4;
             width: 300px; /* Adjusted width for square artwork */
@@ -103,6 +103,7 @@
             white-space: nowrap;
             cursor: pointer; /* Add cursor pointer to indicate interactivity */
             opacity: 0; /* Hide by default */
+            visibility: hidden; /* Completely hide it including pointer events */
             background: rgba(0, 0, 0, 0.8); /* Darker semi-transparent background */
             padding: 15px;
             border-radius: 5px;
@@ -157,8 +158,14 @@
         @media screen and (max-width: 768px) {
             .annotation {
                 font-size: 14px;
-                width: 220px;
+                width: 80%; /* Use percentage width instead of fixed width */
+                max-width: 280px; /* Add a max-width to prevent too wide appearance */
                 padding: 12px;
+                margin: 0 auto; /* Center horizontally */
+                left: 50% !important; /* Force left positioning */
+                right: auto !important; /* Reset right positioning */
+                transform: translateX(-50%) translateY(-50%) !important; /* Center properly */
+                top: 40% !important; /* Lower the annotation further for better visibility */
             }
             
             .annotation-title {
@@ -175,11 +182,43 @@
             
             .annotation-artwork {
                 margin-bottom: 12px;
+                max-height: 35vh; /* Limit height to viewport percentage */
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
             
             .annotation-artwork img {
                 width: 100%;
-                aspect-ratio: 1/1;
+                max-width: 100%;
+                height: auto; /* Let height adjust automatically */
+                max-height: 35vh; /* Limit height to viewport percentage */
+                aspect-ratio: auto; /* Allow natural aspect ratio */
+                object-fit: contain; /* Ensure entire image is visible */
+            }
+
+            /* Make get track button more mobile-friendly */
+            .get-track-button {
+                padding: 8px 12px;
+                font-size: 12px;
+                margin-top: 10px;
+            }
+        }
+        
+        /* Extra small devices */
+        @media screen and (max-width: 480px) {
+            .annotation {
+                width: 85%;
+                padding: 10px;
+                top: 42% !important; /* Even lower on very small screens */
+            }
+            
+            .annotation-artwork {
+                max-height: 30vh;
+            }
+            
+            .annotation-artwork img {
+                max-height: 30vh;
             }
         }
         
@@ -424,12 +463,13 @@
         
         .annotation-artwork img {
             width: 100%; /* Full width */
-            aspect-ratio: 1/1; /* Force square aspect ratio */
             border: 2px solid rgba(255, 158, 195, 0.4); /* Match title color */
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
             border-radius: 3px;
             transition: all 0.3s ease;
-            object-fit: cover; /* Ensure proper image display */
+            object-fit: contain; /* Show full image without cropping */
+            max-height: 40vh; /* Limit height to 40% of viewport height */
+            height: auto; /* Maintain aspect ratio */
         }
         
         .annotation:hover .annotation-artwork img {
@@ -619,7 +659,8 @@
         .credits {
             position: fixed;
             bottom: 10px;
-            right: 10px;
+            left: 50%;
+            transform: translateX(-50%);
             color: rgba(255, 255, 255, 0.5);
             font-family: 'Press Start 2P', cursive;
             font-size: 10px;
@@ -630,6 +671,81 @@
             border-radius: 3px;
             pointer-events: none;
             zoom: 0.5;
+            width: auto;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        /* ID avatar circle style */
+        .id-avatar {
+            position: fixed;
+            left: 50%;
+            top: 75%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(30, 30, 40, 0.7);
+            border: 2px solid rgba(100, 200, 255, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #FFFFFF;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            text-shadow: 0 0 5px rgba(100, 200, 255, 0.9);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), 0 0 30px rgba(100, 150, 255, 0.3);
+            z-index: 100;
+            pointer-events: auto; /* Enable pointer events to make it clickable */
+            cursor: pointer; /* Show pointer cursor on hover */
+            user-select: none;
+            animation: id-avatar-pulse 4s infinite alternate ease-in-out;
+            backdrop-filter: blur(2px);
+            letter-spacing: 1px;
+            transition: all 0.3s ease-out;
+            opacity: 0; /* Start hidden */
+            visibility: hidden; /* Fully hidden until audio starts */
+        }
+        
+        .id-avatar:hover {
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+        
+        .id-avatar:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+        
+        /* Animation for the ID avatar */
+        @keyframes id-avatar-pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), 0 0 30px rgba(100, 150, 255, 0.3);
+                border-color: rgba(100, 200, 255, 0.7);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.6), 0 0 40px rgba(100, 150, 255, 0.5);
+                border-color: rgba(150, 220, 255, 0.9);
+            }
+        }
+        
+        /* Responsive styles for ID avatar */
+        @media screen and (max-width: 768px) {
+            .id-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 12px;
+                top: 75%;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            .id-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 10px;
+                top: 80%; /* Move it a bit lower on very small screens */
+            }
         }
     </style>
 </head>
@@ -743,6 +859,7 @@
         let demoMode = false;
         let audioPlaying = false;
         let annotationTimer = null;
+        let ignoreNextDocumentClick = false; // Flag to ignore next document click
         let demoData = {
             bassPattern: [],
             midPattern: [],
@@ -854,6 +971,9 @@
                 // Start the real audio stream
                 startAudio();
                 
+                // Set flag to ignore the next document click
+                ignoreNextDocumentClick = true;
+                
                 // Prevent default and stop propagation
                 event.preventDefault();
                 event.stopPropagation();
@@ -870,17 +990,52 @@
             
             // Position differently based on screen size
             if (window.innerWidth <= 768) {
-                // Mobile positioning - moved down by 10%
-                annotation.style.top = '30%'; // Moved from 20% to 30% (10% lower)
+                // Mobile positioning - centered and lowered for better visibility
+                annotation.style.top = '40%'; // Moved further down for better mobile layout
                 annotation.style.left = '50%';
+                annotation.style.right = 'auto';
                 annotation.style.transform = 'translateX(-50%) translateY(-50%)';
             } else {
-                // Desktop positioning - right side positioning - moved down by 10%
-                annotation.style.top = '35%'; // Moved from 25% to 35% (10% lower)
+                // Desktop positioning - right side positioning
+                annotation.style.top = '35%';
                 annotation.style.left = 'auto'; 
-                annotation.style.right = '13%'; // Moved left 10% (from 3% to 13%)
+                annotation.style.right = '13%';
                 annotation.style.transform = 'translateY(-50%)';
             }
+            
+            // Add click event listener to document to hide annotations when clicking outside
+            document.addEventListener('click', function(event) {
+                // Check if we should ignore this click (e.g., right after starting audio)
+                if (ignoreNextDocumentClick) {
+                    ignoreNextDocumentClick = false;
+                    return;
+                }
+                
+                // Get references to annotation elements
+                const annotationElem = document.getElementById('annotation');
+                const annotationLine = document.getElementById('annotationLine');
+                const annotationDot = document.getElementById('annotationDot');
+                
+                // Only proceed if the annotation is visible
+                if (annotationElem.style.opacity === '1') {
+                    // Check if click is outside of annotation and not on the ID avatar
+                    if (!annotationElem.contains(event.target) && 
+                        event.target.id !== 'id-avatar' && 
+                        !document.getElementById('id-avatar')?.contains(event.target) &&
+                        event.target.id !== 'startAudioBtn') {
+                        
+                        // Hide the annotation and related elements
+                        annotationElem.style.opacity = '0';
+                        annotationElem.style.visibility = 'hidden';
+                        annotationElem.style.pointerEvents = 'none';
+                        if (annotationLine) annotationLine.style.opacity = '0';
+                        if (annotationDot) annotationDot.style.opacity = '0';
+                        
+                        // Reset auto-show flag
+                        window.autoShowAnnotations = false;
+                    }
+                }
+            });
             
             // Load artwork image
             const artworkImg = document.getElementById('annotationArtwork');
@@ -921,32 +1076,24 @@
                 }
             });
             
-            // Show annotation and line on hover
+            // Show line when hovering over annotation
             annotation.addEventListener('mouseenter', () => {
+                // Keep the line visible when hovering over annotation
                 line.style.opacity = '1';
-                annotation.style.opacity = '1';
                 
-                // Reset the auto-hide timer
+                // Cancel any auto-hide timers when hovering
                 if (annotationTimer) {
                     clearTimeout(annotationTimer);
                 }
-                
-                // Set new timer to hide after 8 seconds
-                annotationTimer = setTimeout(() => {
-                    window.autoShowAnnotations = false;
-                    // Only hide if not being hovered
-                    if (!annotation.matches(':hover') && !document.getElementById('objectHoverArea')?.matches(':hover')) {
-                        annotation.style.opacity = '0';
-                        line.style.opacity = '0';
-                    }
-                }, 2000);
             });
             
             annotation.addEventListener('mouseleave', () => {
-                line.style.opacity = '0';
-                if (!isHoveringObject && !window.autoShowAnnotations) {
-                    annotation.style.opacity = '0';
+                // Hide the line when mouse leaves the annotation, but keep annotation visible
+                // if it was shown by clicking the info button (controlled by autoShowAnnotations)
+                if (!window.autoShowAnnotations) {
+                    line.style.opacity = '0';
                 }
+                // Annotations will only be hidden by clicking the info button or elsewhere on the page
             });
             
             // Track if hovering over the object
@@ -1033,6 +1180,15 @@
             
             // Set audio as playing
             audioPlaying = true;
+            
+            // Show the ID avatar with a delay to let other elements fade out first
+            setTimeout(() => {
+                const idAvatar = document.getElementById('id-avatar');
+                if (idAvatar) {
+                    idAvatar.style.visibility = 'visible';
+                    idAvatar.style.opacity = '1';
+                }
+            }, 800); // Slightly longer delay than the audio button fadeout
             
             // Stop demo mode if it's running
             if (demoMode) {
@@ -1614,29 +1770,8 @@
                 // This ensures we detect touches on both the main mesh and its wireframe child
                 const centerIntersects = raycaster.intersectObjects([centerObject], true);
                 if (centerIntersects.length > 0) {
-                    // Show annotations when center object is touched
-                    const annotation = document.getElementById('annotation');
-                    const line = document.getElementById('annotationLine');
-                    if (annotation && line) {
-                        window.autoShowAnnotations = true;
-                        annotation.style.opacity = '1';
-                        line.style.opacity = '1';
-                        
-                        // Reset the auto-hide timer
-                        if (annotationTimer) {
-                            clearTimeout(annotationTimer);
-                        }
-                        
-                        // Hide annotations after 30 seconds
-                        annotationTimer = setTimeout(() => {
-                            window.autoShowAnnotations = false;
-                            // Only hide if not being hovered
-                            if (!annotation.matches(':hover') && !document.getElementById('objectHoverArea')?.matches(':hover')) {
-                                annotation.style.opacity = '0';
-                                line.style.opacity = '0';
-                            }
-                        }, 30000); // Hide after 30 seconds
-                    }
+                    // Touching the center object no longer shows annotations
+                    // This functionality has been moved to the ID avatar
                     return; // Don't process further touch actions
                 }
                 
@@ -1686,7 +1821,12 @@
             // Update the raycaster with the camera and mouse position
             raycaster.setFromCamera(mouse, camera);
             
-            // Center object click handler for annotations has been removed to prevent interference with other click actions
+            // Check if click is on center object but don't show annotations
+            const centerIntersects = raycaster.intersectObjects([centerObject], true);
+            if (centerIntersects.length > 0) {
+                // Clicking center object no longer shows annotations
+                // Just handle as a regular click - don't return early
+            }
             
             // Check for intersections with stars
             const intersects = raycaster.intersectObject(starField);
@@ -2853,31 +2993,18 @@
             // Reset auto-show flag
             window.autoShowAnnotations = false;
             
-            // Only set up timer if audio is playing
-            if (audioPlaying) {
-                annotationTimer = setTimeout(() => {
-                    // Only show annotations if audio is still playing
-                    if (audioPlaying) {
-                        const annotation = document.getElementById('annotation');
-                        const line = document.getElementById('annotationLine');
-                        if (annotation && line) {
-                            window.autoShowAnnotations = true;
-                            annotation.style.opacity = '1';
-                            line.style.opacity = '1'; // Also show the line
-                            
-                            // Hide annotations after 30 seconds (increased from 10 seconds)
-                            setTimeout(() => {
-                                window.autoShowAnnotations = false;
-                                // Only hide if not being hovered
-                                if (!annotation.matches(':hover') && !document.getElementById('objectHoverArea')?.matches(':hover')) {
-                                    annotation.style.opacity = '0';
-                                    document.getElementById('annotationLine').style.opacity = '0';
-                                }
-                            }, 30000); // Hide after 30 seconds of showing
-                        }
-                    }
-                }, 120000); // Show after 8 seconds
+            // Make sure annotations are hidden by default
+            const annotation = document.getElementById('annotation');
+            const line = document.getElementById('annotationLine');
+            if (annotation && line) {
+                annotation.style.opacity = '0';
+                annotation.style.visibility = 'hidden';
+                annotation.style.pointerEvents = 'none';
+                line.style.opacity = '0';
             }
+            
+            // No longer setting up auto-show timer
+            // Annotations will only appear when the info button is clicked
         }
         
         // Function to create the center click area for annotations
@@ -2886,33 +3013,8 @@
             centerClickArea.id = 'center-click-area';
             document.body.appendChild(centerClickArea);
             
-            // Add click event listener
-            centerClickArea.addEventListener('click', function(event) {
-                // Show annotations when center area is clicked
-                const annotation = document.getElementById('annotation');
-                const line = document.getElementById('annotationLine');
-                if (annotation && line) {
-                    window.autoShowAnnotations = true;
-                    annotation.style.opacity = '1';
-                    line.style.opacity = '1';
-                    
-                    // Reset the auto-hide timer
-                    if (annotationTimer) {
-                        clearTimeout(annotationTimer);
-                    }
-                    
-                    // Hide annotations after 30 seconds
-                    annotationTimer = setTimeout(() => {
-                        window.autoShowAnnotations = false;
-                        if (!annotation.matches(':hover')) {
-                            annotation.style.opacity = '0';
-                            line.style.opacity = '0';
-                        }
-                    }, 30000); // Hide after 30 seconds
-                }
-                
-                // Don't stop event propagation, allowing other click events to work
-            });
+            // Center click area no longer shows annotations
+            // Functionality moved to ID avatar
         }
         
         // Create warp fuel gauge element function (define before it's used)
@@ -3035,6 +3137,54 @@
         });
     </script>
     <!-- Credits -->
-    <div class="credits">gfx @shoeboxdnb</div>
+    <div class="credits">gfx @shoeboxdnb • music djairwalk</div>
+    
+    <!-- ID Avatar Circle (initially hidden until audio starts) -->
+    <div class="id-avatar" id="id-avatar">
+        <img src="images/info-icon.svg" alt="Info" title="Show Annotations" width="28" height="28" />
+        <!-- Alternative icon option: <img src="images/info-icon-alt.svg" alt="Info" title="Show Annotations" width="28" height="28" /> -->
+    </div>
+    <script>
+        // Add event listener to the ID avatar button after the DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const idAvatar = document.getElementById('id-avatar');
+            if (idAvatar) {
+                idAvatar.addEventListener('click', function(event) {
+                    // Toggle annotations when ID avatar is clicked
+                    const annotation = document.getElementById('annotation');
+                    const line = document.getElementById('annotationLine');
+                    if (annotation && line) {
+                        // Check current state to toggle
+                        if (annotation.style.opacity === '1') {
+                            // Hide annotations if visible
+                            window.autoShowAnnotations = false;
+                            annotation.style.opacity = '0';
+                            annotation.style.visibility = 'hidden';
+                            annotation.style.pointerEvents = 'none';
+                            line.style.opacity = '0';
+                            
+                            // Clear any auto-hide timer
+                            if (window.annotationTimer) {
+                                clearTimeout(window.annotationTimer);
+                                window.annotationTimer = null;
+                            }
+                        } else {
+                            // Show annotations if hidden
+                            window.autoShowAnnotations = true;
+                            annotation.style.opacity = '1';
+                            annotation.style.visibility = 'visible';
+                            annotation.style.pointerEvents = 'auto';
+                            line.style.opacity = '1';
+                            
+                            // No auto-hide timer - will stay visible until clicked again
+                        }
+                    }
+                    
+                    // Prevent event propagation to avoid triggering hide-on-click-outside
+                    event.stopPropagation();
+                });
+            }
+        });
+    </script>
 </body>
 </html>
