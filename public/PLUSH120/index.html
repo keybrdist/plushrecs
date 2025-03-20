@@ -677,6 +677,208 @@
         }
         
         /* ID avatar circle style */
+        
+        /* Achievement notification indicator */
+        .achievement-notification {
+            position: fixed;
+            top: 80px; /* Position below the score which is usually at the top */
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffcc00;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            color: #ffcc00;
+            z-index: 9000;
+            display: none;
+            cursor: pointer;
+            pointer-events: auto;
+            animation: pulse-notification 2s infinite;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            text-shadow: 0 0 5px rgba(255, 204, 0, 0.7);
+            max-width: 200px;
+            text-align: center;
+            transform-origin: left center;
+        }
+        
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .achievement-notification:hover {
+            background-color: rgba(20, 20, 20, 0.95);
+            transform: scale(1.05);
+        }
+        
+        /* Modal overlay for achievements */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            display: none;
+            pointer-events: auto;
+        }
+        
+        /* Bandcamp redemption codes display */
+        .bandcamp-codes-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.95);
+            border: 3px solid #11ccff;
+            border-radius: 8px;
+            padding: 20px;
+            color: #ffffff;
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            z-index: 9999; /* Ensure it's above everything else */
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 0 30px rgba(17, 204, 255, 0.8);
+            display: none;
+            pointer-events: auto; /* Ensure it can be interacted with */
+        }
+        
+        .bandcamp-codes-container h2 {
+            color: #ffcc00;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .bandcamp-codes-list {
+            background-color: rgba(40, 40, 40, 0.8);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .bandcamp-code {
+            margin: 8px 0;
+            color: #11ccff;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+            position: relative;
+            border: 1px dashed transparent;
+            font-family: monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-align: center;
+            user-select: all; /* Makes the text easier to select */
+        }
+        
+        .bandcamp-code:hover {
+            background-color: rgba(17, 204, 255, 0.2);
+            border-color: rgba(17, 204, 255, 0.5);
+        }
+        
+        .bandcamp-code:active {
+            background-color: rgba(17, 204, 255, 0.4);
+            transform: scale(0.98);
+            border-color: #11ccff;
+        }
+        
+        /* Style for code elements that are in selected state */
+        .bandcamp-code.selected {
+            background-color: rgba(17, 204, 255, 0.3);
+            border: 1px solid #11ccff;
+        }
+        
+        .code-copied-message {
+            position: absolute;
+            right: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 204, 0, 0.9);
+            color: black;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-family: Arial, sans-serif;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        
+        /* Mobile adjustments for copy feedback */
+        @media (max-width: 768px) {
+            .bandcamp-code::after {
+                content: "TAP TO COPY";
+                position: absolute;
+                top: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 10px;
+                color: rgba(255, 204, 0, 0.7);
+                opacity: 0.8;
+                font-family: Arial, sans-serif;
+                pointer-events: none;
+                white-space: nowrap;
+            }
+            
+            .code-copied-message {
+                right: auto;
+                left: 50%;
+                top: -25px;
+                transform: translateX(-50%);
+                z-index: 10;
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            
+            .bandcamp-code {
+                position: relative; /* Ensure relative positioning for mobile */
+                margin: 15px 0; /* More vertical space between codes on mobile */
+            }
+        }
+        
+        .bandcamp-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #11ccff;
+            color: #000;
+            font-size: 14px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        
+        .bandcamp-link:hover {
+            background-color: #ffcc00;
+            transform: scale(1.05);
+        }
+        
+        .close-codes-btn {
+            margin-top: 15px;
+            padding: 8px 12px;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+        }
+        
+        .close-codes-btn:hover {
+            background-color: #555;
+        }
+        
+        /* Avatar styling */
         .id-avatar {
             position: fixed;
             left: 50%;
@@ -807,12 +1009,12 @@
         // Main configuration parameters
         const CONFIG = {
             pixelSize: 4,          // Size of each "pixel" in our pixel art
-            starCount: 600,        // Further increased star count for more immersive effect
+            starCount: 800,        // Further increased star count for more immersive effect
             starSpeed: 0.6,        // Dramatically increased speed for faster space travel effect
-            warpDriveThreshold: 300,  // Points threshold to activate warp drive effect
+            warpDriveThreshold: 800,  // Points threshold to activate warp drive effect
             warpDriveSpeed: 4.5,      // Speed multiplier during warp drive
             warpDriveStretch: 8.0,    // How much stars stretch during warp drive
-            ultraWarpThreshold: 600,  // Points threshold to activate ULTRA warp drive
+            ultraWarpThreshold: 2000,  // Points threshold to activate ULTRA warp drive
             ultraWarpSpeed: 7.0,      // Speed multiplier during ULTRA warp
             ultraWarpStretch: 32.0,   // How much stars stretch during ULTRA warp
             particleCount: 150,    // Number of particles for the breaking apart effect
@@ -820,7 +1022,7 @@
             beatDuration: 60000 / 170, // Duration of one beat in ms
             explosionFrequency: 0.005, // Reduced chance of star explosion for calmer feel
             objectPulseAmount: 0.35,   // Increased pulse amount for more pronounced effect
-            audioReactivity: 0.6,  // How much the audio affects the animation (0-1)
+            audioReactivity: 0.8,  // How much the audio affects the animation (0-1)
             resolution: {          // Render resolution
                 width: 200,        // 200 * pixelSize = 800px
                 height: 150        // 150 * pixelSize = 600px
@@ -897,6 +1099,32 @@
         // Track recent point positions to avoid overlapping
         const recentPointPositions = [];
         const MAX_RECENT_POSITIONS = 5; // Number of recent positions to track
+        
+        // Variable to track if codes have been shown
+        let codesShown = false;
+        
+        // Animation control
+        let isPaused = false;
+        
+        // Bandcamp codes array - all codes from codes.txt
+        const bandcampCodes = [
+            "ymtp-66je",
+            "38z8-yk93",
+            "ak2y-bkk4",
+            "rymz-h9zm",
+            "d28z-v8k6",
+            "uzzx-gmzv",
+            "xytj-u689",
+            "qkk8-e67z",
+            "9nyt-3yq6",
+            "zdky-hu6y",
+            "yjyz-jpzf",
+            "yguz-krym",
+            "3twk-6ln6",
+            "azjk-km5k",
+            "8y92-66b8",
+            "t2td-kk4n"
+        ];
         
         // Initialize the scene
         function init() {
@@ -1907,10 +2135,323 @@
             starExplosions.push(explosion);
         }
         
+        // Function to show achievement notification
+        function showAchievementNotification() {
+            console.log("Achievement unlocked: 3000 points reached! Showing notification.");
+            
+            // Do NOT pause the game for notification, only for modal
+            // isPaused remains false here
+            
+            // Create notification if it doesn't exist
+            let notification = document.getElementById('achievement-notification');
+            
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'achievement-notification';
+                notification.className = 'achievement-notification';
+                notification.textContent = '🏆 ACHIEVEMENT UNLOCKED! Click to claim reward';
+                notification.onclick = function() {
+                    showBandcampCodesModal();
+                };
+                document.body.appendChild(notification);
+            }
+            
+            // Show the notification
+            notification.style.display = 'block';
+        }
+        
+        // Function to show Bandcamp redemption codes modal
+        function showBandcampCodesModal() {
+            
+            // Pause any animation or game elements if needed
+            isPaused = true;
+            
+            // Create overlay if it doesn't exist
+            let overlay = document.getElementById('modal-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'modal-overlay';
+                overlay.className = 'modal-overlay';
+                document.body.appendChild(overlay);
+            }
+            overlay.style.display = 'block';
+            
+            // Check if container already exists
+            let container = document.getElementById('bandcamp-codes-container');
+            
+            if (!container) {
+                // Create container for the codes
+                container = document.createElement('div');
+                container.id = 'bandcamp-codes-container';
+                container.className = 'bandcamp-codes-container';
+                
+                // Create header
+                const header = document.createElement('h2');
+                header.textContent = 'ACHIEVEMENT UNLOCKED: 3000 POINTS!';
+                container.appendChild(header);
+                
+                // Add description
+                const description = document.createElement('p');
+                description.textContent = 'You\'ve earned free download codes for the PLUSH120 release:';
+                container.appendChild(description);
+                
+                // Add click instruction with device detection
+                const clickInstruction = document.createElement('p');
+                clickInstruction.style.fontSize = '11px';
+                clickInstruction.style.marginTop = '5px';
+                clickInstruction.style.opacity = '0.8';
+                clickInstruction.style.fontStyle = 'italic';
+                
+                // Check if mobile device
+                const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobileDevice) {
+                    clickInstruction.textContent = '(Tap any code to copy/select it)';
+                } else {
+                    clickInstruction.textContent = '(Click any code to copy it to clipboard)';
+                }
+                
+                container.appendChild(clickInstruction);
+                
+                // Create codes list
+                const codesList = document.createElement('div');
+                codesList.className = 'bandcamp-codes-list';
+                
+                // Properly shuffle the codes and pick the top 3
+                // Fisher-Yates shuffle algorithm for better randomization
+                function shuffleArray(array) {
+                    const shuffled = [...array]; // Create a copy of the array
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap elements
+                    }
+                    return shuffled;
+                }
+                
+                // Get 3 random codes using proper shuffle
+                const shuffled = shuffleArray(bandcampCodes);
+                const selectedCodes = shuffled.slice(0, 3);
+                
+                // Add each code with click-to-copy functionality
+                selectedCodes.forEach(code => {
+                    const codeElement = document.createElement('div');
+                    codeElement.className = 'bandcamp-code';
+                    codeElement.textContent = code;
+                    codeElement.title = 'Click to copy to clipboard';
+                    
+                    // Add copy to clipboard functionality with mobile-friendly approach
+                    codeElement.addEventListener('click', function() {
+                        // Mobile-friendly copy function
+                        function copyTextToClipboard(text) {
+                            console.log('Attempting to copy text:', text);
+                            
+                            // Special handling for mobile devices
+                            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                            console.log('Is mobile device:', isMobile);
+                            
+                            if (isMobile) {
+                                // Mobile special handling: create a visible, focusable, selectable input
+                                const originalCode = codeElement.textContent;
+                                
+                                // Create a temporary input that we'll place over the code
+                                const tempInput = document.createElement('input');
+                                tempInput.value = text;
+                                tempInput.style.position = 'absolute';
+                                tempInput.style.top = '0';
+                                tempInput.style.left = '0';
+                                tempInput.style.width = '100%';
+                                tempInput.style.height = '100%';
+                                tempInput.style.background = 'transparent';
+                                tempInput.style.color = '#11ccff';
+                                tempInput.style.border = 'none';
+                                tempInput.style.textAlign = 'center';
+                                tempInput.style.fontFamily = 'monospace';
+                                tempInput.style.fontSize = '16px';
+                                tempInput.style.padding = '8px';
+                                tempInput.style.zIndex = '999';
+                                tempInput.readOnly = true; // Make it read-only but still selectable
+                                
+                                // Make sure parent has positioning
+                                codeElement.style.position = 'relative';
+                                
+                                // Add input to DOM
+                                codeElement.appendChild(tempInput);
+                                
+                                // Focus and select
+                                tempInput.focus();
+                                tempInput.select();
+                                
+                                // Show instructions for manual copy
+                                return new Promise(resolve => {
+                                    // Set a timeout to remove the input and resolve the promise
+                                    setTimeout(() => {
+                                        try {
+                                            const success = document.execCommand('copy');
+                                            console.log('Mobile copy success:', success);
+                                            
+                                            // Remove temporary input
+                                            if (codeElement.contains(tempInput)) {
+                                                codeElement.removeChild(tempInput);
+                                            }
+                                            
+                                            resolve(success);
+                                        } catch (err) {
+                                            console.error('Mobile copy failed:', err);
+                                            
+                                            // Keep input for manual copying (will be removed later)
+                                            setTimeout(() => {
+                                                if (codeElement.contains(tempInput)) {
+                                                    codeElement.removeChild(tempInput);
+                                                }
+                                            }, 3000);
+                                            
+                                            resolve(false);
+                                        }
+                                    }, 100);
+                                });
+                            }
+                            
+                            // Desktop approach
+                            // First try the modern API
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                return navigator.clipboard.writeText(text).then(function() {
+                                    console.log('Clipboard API success: Text copied to clipboard');
+                                    return true;
+                                }).catch(function(err) {
+                                    console.warn('Clipboard API failed:', err);
+                                    return false;
+                                });
+                            }
+                            
+                            // Fallback for older desktop browsers: create a temporary textarea element
+                            const textArea = document.createElement('textarea');
+                            textArea.value = text;
+                            textArea.style.position = 'fixed';
+                            textArea.style.left = '-999999px';
+                            textArea.style.top = '-999999px';
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            
+                            let success = false;
+                            try {
+                                success = document.execCommand('copy');
+                                console.log('execCommand success:', success);
+                            } catch (err) {
+                                console.error('execCommand failed:', err);
+                            }
+                            
+                            document.body.removeChild(textArea);
+                            return Promise.resolve(success);
+                        }
+                        
+                        // Try to copy the text
+                        copyTextToClipboard(code).then(function(success) {
+                            // Create feedback message
+                            const copyMessage = document.createElement('span');
+                            copyMessage.className = 'code-copied-message';
+                            
+                            if (success) {
+                                copyMessage.textContent = 'Code Copied to Clipboard!';
+                            } else {
+                                copyMessage.textContent = 'Copy failed. Select and copy manually.';
+                                copyMessage.style.backgroundColor = 'rgba(255, 100, 100, 0.9)';
+                                
+                                // Add visual selection to help with manual copy
+                                // Select the text inside the code element for easy manual copy
+                                const selection = window.getSelection();
+                                const range = document.createRange();
+                                range.selectNodeContents(codeElement);
+                                selection.removeAllRanges();
+                                selection.addRange(range);
+                                
+                                // Add visual selected state
+                                codeElement.classList.add('selected');
+                                
+                                // Remove selected class after delay
+                                setTimeout(() => {
+                                    codeElement.classList.remove('selected');
+                                }, 3000);
+                            }
+                            
+                            // Remove any existing copy messages
+                            const existingMessages = codeElement.querySelectorAll('.code-copied-message');
+                            existingMessages.forEach(msg => msg.remove());
+                            
+                            // Add the new message
+                            codeElement.appendChild(copyMessage);
+                            
+                            // Make message visible
+                            setTimeout(() => {
+                                copyMessage.style.opacity = '1';
+                            }, 10);
+                            
+                            // Hide message after a delay
+                            setTimeout(() => {
+                                copyMessage.style.opacity = '0';
+                                setTimeout(() => {
+                                    copyMessage.remove();
+                                }, 300);
+                            }, 1500);
+                        });
+                    });
+                    
+                    codesList.appendChild(codeElement);
+                });
+                
+                container.appendChild(codesList);
+                
+                // Add redemption link
+                const linkContainer = document.createElement('div');
+                const link = document.createElement('a');
+                link.href = 'https://plush.bandcamp.com/yum';
+                link.className = 'bandcamp-link';
+                link.textContent = 'REDEEM ON BANDCAMP';
+                link.target = '_blank';
+                linkContainer.appendChild(link);
+                container.appendChild(linkContainer);
+                
+                // Add close button
+                const closeButton = document.createElement('button');
+                closeButton.className = 'close-codes-btn';
+                closeButton.textContent = 'CONTINUE PLAYING';
+                closeButton.onclick = function() {
+                    container.style.display = 'none';
+                    document.getElementById('modal-overlay').style.display = 'none';
+                    // Don't unpause when closing modal - game should still run with notification showing
+                    isPaused = false;
+                };
+                container.appendChild(closeButton);
+                
+                // Add to body and ensure it's displayed
+                document.body.appendChild(container);
+                // Force a reflow and ensure display
+                setTimeout(() => {
+                    container.style.display = 'block';
+                }, 50); // Small delay to ensure DOM updates
+            } else {
+                // Show the container if it already exists
+                container.style.display = 'block';
+            }
+            
+            // Add a global click handler to ensure visibility
+            window.setTimeout(() => {
+                if (container) {
+                    container.style.display = 'block';
+                }
+            }, 100);
+        }
+        
         // Update points display with animation
         function updatePointsDisplay(newPoints, clickX, clickY) {
             const pointsDisplay = document.getElementById('points-display');
             pointsDisplay.textContent = points;
+            
+            // Check if points reached 3000 and codes haven't been shown yet
+            if (points >= 3000 && !codesShown) {
+                console.log("Achievement unlocked: 3000 points reached!");
+                codesShown = true;
+                showAchievementNotification(); // Show notification instead of modal directly
+            }
             
             // Add flash effect for new points
             pointsDisplay.style.fontSize = '28px';
@@ -2926,6 +3467,9 @@
         // Main animation loop
         function animate() {
             requestAnimationFrame(animate);
+            
+            // Skip updating if paused (showing achievement, etc.)
+            if (isPaused) return;
             
             const deltaTime = Math.min(0.1, clock.getDelta()); // Cap delta time to avoid large jumps
             
