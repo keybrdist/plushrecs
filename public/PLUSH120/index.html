@@ -766,34 +766,50 @@
         .bandcamp-code {
             margin: 8px 0;
             color: #11ccff;
-            cursor: pointer;
             padding: 8px;
             border-radius: 3px;
-            transition: all 0.2s ease;
             position: relative;
-            border: 1px dashed transparent;
+            border: 1px solid rgba(17, 204, 255, 0.3);
             font-family: monospace;
             font-size: 16px;
             letter-spacing: 1px;
             text-align: center;
             user-select: all; /* Makes the text easier to select */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.2);
         }
         
-        .bandcamp-code:hover {
-            background-color: rgba(17, 204, 255, 0.2);
-            border-color: rgba(17, 204, 255, 0.5);
+        .copy-button {
+            background-color: rgba(255, 204, 0, 0.8);
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            padding: 6px 10px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
         }
         
-        .bandcamp-code:active {
-            background-color: rgba(17, 204, 255, 0.4);
-            transform: scale(0.98);
-            border-color: #11ccff;
+        .copy-button:hover {
+            background-color: rgba(255, 204, 0, 1);
+            transform: scale(1.05);
         }
         
-        /* Style for code elements that are in selected state */
-        .bandcamp-code.selected {
-            background-color: rgba(17, 204, 255, 0.3);
-            border: 1px solid #11ccff;
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* Container for the code and button pair */
+        .code-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            justify-content: center;
         }
         
         .code-copied-message {
@@ -815,18 +831,17 @@
         
         /* Mobile adjustments for copy feedback */
         @media (max-width: 768px) {
-            .bandcamp-code::after {
-                content: "TAP TO COPY";
-                position: absolute;
-                top: -20px;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 10px;
-                color: rgba(255, 204, 0, 0.7);
-                opacity: 0.8;
-                font-family: Arial, sans-serif;
-                pointer-events: none;
-                white-space: nowrap;
+            .code-container {
+                flex-direction: column;
+                margin: 15px 0;
+            }
+            
+            .copy-button {
+                margin-left: 0;
+                margin-top: 8px;
+                padding: 8px 12px;
+                width: 100%;
+                max-width: 200px;
             }
             
             .code-copied-message {
@@ -2195,21 +2210,13 @@
                 description.textContent = 'You\'ve earned free download codes for the PLUSH120 release:';
                 container.appendChild(description);
                 
-                // Add click instruction with device detection
+                // Add instruction for the copy buttons
                 const clickInstruction = document.createElement('p');
                 clickInstruction.style.fontSize = '11px';
                 clickInstruction.style.marginTop = '5px';
                 clickInstruction.style.opacity = '0.8';
                 clickInstruction.style.fontStyle = 'italic';
-                
-                // Check if mobile device
-                const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                if (isMobileDevice) {
-                    clickInstruction.textContent = '(Tap any code to copy/select it)';
-                } else {
-                    clickInstruction.textContent = '(Click any code to copy it to clipboard)';
-                }
-                
+                clickInstruction.textContent = '(Use the COPY buttons to copy codes to clipboard)';
                 container.appendChild(clickInstruction);
                 
                 // Create codes list
@@ -2231,171 +2238,107 @@
                 const shuffled = shuffleArray(bandcampCodes);
                 const selectedCodes = shuffled.slice(0, 3);
                 
-                // Add each code with click-to-copy functionality
-                selectedCodes.forEach(code => {
-                    const codeElement = document.createElement('div');
-                    codeElement.className = 'bandcamp-code';
-                    codeElement.textContent = code;
-                    codeElement.title = 'Click to copy to clipboard';
+                // Function to copy text to clipboard
+                function copyTextToClipboard(text, button) {
+                    console.log('Attempting to copy text:', text);
                     
-                    // Add copy to clipboard functionality with mobile-friendly approach
-                    codeElement.addEventListener('click', function() {
-                        // Mobile-friendly copy function
-                        function copyTextToClipboard(text) {
-                            console.log('Attempting to copy text:', text);
-                            
-                            // Special handling for mobile devices
-                            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                            console.log('Is mobile device:', isMobile);
-                            
-                            if (isMobile) {
-                                // Mobile special handling: create a visible, focusable, selectable input
-                                const originalCode = codeElement.textContent;
-                                
-                                // Create a temporary input that we'll place over the code
-                                const tempInput = document.createElement('input');
-                                tempInput.value = text;
-                                tempInput.style.position = 'absolute';
-                                tempInput.style.top = '0';
-                                tempInput.style.left = '0';
-                                tempInput.style.width = '100%';
-                                tempInput.style.height = '100%';
-                                tempInput.style.background = 'transparent';
-                                tempInput.style.color = '#11ccff';
-                                tempInput.style.border = 'none';
-                                tempInput.style.textAlign = 'center';
-                                tempInput.style.fontFamily = 'monospace';
-                                tempInput.style.fontSize = '16px';
-                                tempInput.style.padding = '8px';
-                                tempInput.style.zIndex = '999';
-                                tempInput.readOnly = true; // Make it read-only but still selectable
-                                
-                                // Make sure parent has positioning
-                                codeElement.style.position = 'relative';
-                                
-                                // Add input to DOM
-                                codeElement.appendChild(tempInput);
-                                
-                                // Focus and select
-                                tempInput.focus();
-                                tempInput.select();
-                                
-                                // Show instructions for manual copy
-                                return new Promise(resolve => {
-                                    // Set a timeout to remove the input and resolve the promise
-                                    setTimeout(() => {
-                                        try {
-                                            const success = document.execCommand('copy');
-                                            console.log('Mobile copy success:', success);
-                                            
-                                            // Remove temporary input
-                                            if (codeElement.contains(tempInput)) {
-                                                codeElement.removeChild(tempInput);
-                                            }
-                                            
-                                            resolve(success);
-                                        } catch (err) {
-                                            console.error('Mobile copy failed:', err);
-                                            
-                                            // Keep input for manual copying (will be removed later)
-                                            setTimeout(() => {
-                                                if (codeElement.contains(tempInput)) {
-                                                    codeElement.removeChild(tempInput);
-                                                }
-                                            }, 3000);
-                                            
-                                            resolve(false);
-                                        }
-                                    }, 100);
-                                });
-                            }
-                            
-                            // Desktop approach
-                            // First try the modern API
-                            if (navigator.clipboard && navigator.clipboard.writeText) {
-                                return navigator.clipboard.writeText(text).then(function() {
-                                    console.log('Clipboard API success: Text copied to clipboard');
-                                    return true;
-                                }).catch(function(err) {
-                                    console.warn('Clipboard API failed:', err);
-                                    return false;
-                                });
-                            }
-                            
-                            // Fallback for older desktop browsers: create a temporary textarea element
-                            const textArea = document.createElement('textarea');
-                            textArea.value = text;
-                            textArea.style.position = 'fixed';
-                            textArea.style.left = '-999999px';
-                            textArea.style.top = '-999999px';
-                            document.body.appendChild(textArea);
-                            textArea.focus();
-                            textArea.select();
-                            
-                            let success = false;
-                            try {
-                                success = document.execCommand('copy');
-                                console.log('execCommand success:', success);
-                            } catch (err) {
-                                console.error('execCommand failed:', err);
-                            }
-                            
-                            document.body.removeChild(textArea);
-                            return Promise.resolve(success);
-                        }
-                        
-                        // Try to copy the text
-                        copyTextToClipboard(code).then(function(success) {
-                            // Create feedback message
-                            const copyMessage = document.createElement('span');
-                            copyMessage.className = 'code-copied-message';
-                            
-                            if (success) {
-                                copyMessage.textContent = 'Code Copied to Clipboard!';
-                            } else {
-                                copyMessage.textContent = 'Copy failed. Select and copy manually.';
-                                copyMessage.style.backgroundColor = 'rgba(255, 100, 100, 0.9)';
-                                
-                                // Add visual selection to help with manual copy
-                                // Select the text inside the code element for easy manual copy
-                                const selection = window.getSelection();
-                                const range = document.createRange();
-                                range.selectNodeContents(codeElement);
-                                selection.removeAllRanges();
-                                selection.addRange(range);
-                                
-                                // Add visual selected state
-                                codeElement.classList.add('selected');
-                                
-                                // Remove selected class after delay
-                                setTimeout(() => {
-                                    codeElement.classList.remove('selected');
-                                }, 3000);
-                            }
-                            
-                            // Remove any existing copy messages
-                            const existingMessages = codeElement.querySelectorAll('.code-copied-message');
-                            existingMessages.forEach(msg => msg.remove());
-                            
-                            // Add the new message
-                            codeElement.appendChild(copyMessage);
-                            
-                            // Make message visible
-                            setTimeout(() => {
-                                copyMessage.style.opacity = '1';
-                            }, 10);
-                            
-                            // Hide message after a delay
-                            setTimeout(() => {
-                                copyMessage.style.opacity = '0';
-                                setTimeout(() => {
-                                    copyMessage.remove();
-                                }, 300);
-                            }, 1500);
+                    // First try the modern API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(function() {
+                            console.log('Clipboard API success: Text copied to clipboard');
+                            showCopyFeedback(button, true);
+                        }).catch(function(err) {
+                            console.warn('Clipboard API failed:', err);
+                            // Fall back to legacy method
+                            legacyCopyMethod(text, button);
                         });
-                    });
+                        return;
+                    }
                     
-                    codesList.appendChild(codeElement);
+                    // If clipboard API not available, use legacy method
+                    legacyCopyMethod(text, button);
+                }
+                
+                // Legacy copy method using execCommand
+                function legacyCopyMethod(text, button) {
+                    // Create a temporary textarea element
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '0';
+                    textArea.style.top = '0';
+                    textArea.style.opacity = '0';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    let success = false;
+                    try {
+                        success = document.execCommand('copy');
+                        console.log('execCommand success:', success);
+                    } catch (err) {
+                        console.error('execCommand failed:', err);
+                    }
+                    
+                    document.body.removeChild(textArea);
+                    showCopyFeedback(button, success);
+                }
+                
+                // Show copy feedback on the button
+                function showCopyFeedback(button, success) {
+                    const originalText = button.textContent;
+                    
+                    if (success) {
+                        button.textContent = 'COPIED!';
+                        button.style.backgroundColor = '#22cc22';
+                    } else {
+                        button.textContent = 'FAILED';
+                        button.style.backgroundColor = '#cc2222';
+                    }
+                    
+                    // Reset button after delay
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.backgroundColor = '';
+                    }, 1500);
+                }
+                
+                // Add each code with a copy button
+                selectedCodes.forEach(code => {
+                    // Using an IIFE (Immediately Invoked Function Expression) to create proper closure
+                    // This ensures each button gets its own independent copy of the code variable
+                    (function(codeValue) {
+                        // Create a container for the code and button
+                        const codeContainer = document.createElement('div');
+                        codeContainer.className = 'code-container';
+                        
+                        // Create the code element
+                        const codeElement = document.createElement('div');
+                        codeElement.className = 'bandcamp-code';
+                        codeElement.textContent = codeValue;
+                        codeElement.setAttribute('data-code', codeValue); // Add data attribute for extra safety
+                        
+                        // Create the copy button
+                        const copyButton = document.createElement('button');
+                        copyButton.className = 'copy-button';
+                        copyButton.textContent = 'COPY';
+                        copyButton.setAttribute('data-code', codeValue); // Add data attribute for extra safety
+                        
+                        // Add click event with explicit code reference
+                        copyButton.addEventListener('click', function() {
+                            // Get code from the data attribute to ensure correctness
+                            const codeToUse = this.getAttribute('data-code');
+                            console.log('Copying specific code:', codeToUse);
+                            copyTextToClipboard(codeToUse, this);
+                        });
+                        
+                        // Add elements to container
+                        codeContainer.appendChild(codeElement);
+                        codeContainer.appendChild(copyButton);
+                        
+                        // Add container to the codes list
+                        codesList.appendChild(codeContainer);
+                    })(code); // Pass the current code value to the IIFE
                 });
                 
                 container.appendChild(codesList);
