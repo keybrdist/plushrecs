@@ -1,0 +1,4047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Reactive Pixel Art Space Animation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        #center-click-area {
+            position: fixed;
+            width: 160px;
+            height: 160px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            /* Uncomment to see the area during development */
+            /* background-color: rgba(255, 0, 0, 0.2); */
+            /* border: 1px solid white; */
+            cursor: pointer;
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important; /* Hide scrollbars */
+            height: 100vh;
+            width: 100vw;
+            position: fixed !important; /* Prevent scrolling */
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            touch-action: none; /* Disable touch scrolling */
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+            overscroll-behavior: none; /* Prevent pull-to-refresh */
+            cursor: crosshair !important; /* Set crosshair cursor for entire page */
+        }
+        
+        /* Global cursor setting */
+        * {
+            cursor: crosshair !important;
+        }
+        
+        /* Exceptions for interactive elements */
+        button, .start-audio, a, .annotation, .toggle-button {
+            cursor: pointer !important;
+        }
+        
+        /* Hide scrollbars in different browsers */
+        ::-webkit-scrollbar {
+            display: none;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            width: 100vw !important;
+            height: 100vh !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            animation: subtle-pulse 15s infinite alternate ease-in-out;
+            z-index: 0;
+            max-width: 100%;
+            max-height: 100%;
+            overflow: hidden;
+        }
+        @keyframes subtle-pulse {
+            0% {
+                filter: hue-rotate(0deg) brightness(1);
+            }
+            50% {
+                filter: hue-rotate(10deg) brightness(1.05);
+            }
+            100% {
+                filter: hue-rotate(-5deg) brightness(0.95);
+            }
+        }
+        
+        /* Scientific diagram annotation styles */
+        .annotation {
+            position: absolute;
+            font-family: 'VT323', monospace;
+            color: rgba(255, 255, 255, 0.9);
+            z-index: 5;
+            pointer-events: none; /* Initially disable all pointer events */
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            font-size: 16px;
+            line-height: 1.4;
+            width: 300px; /* Adjusted width for square artwork */
+            text-align: left;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.9);
+            image-rendering: pixelated;
+            white-space: nowrap;
+            cursor: pointer; /* Add cursor pointer to indicate interactivity */
+            opacity: 0; /* Hide by default */
+            visibility: hidden; /* Completely hide it including pointer events */
+            background: rgba(0, 0, 0, 0.8); /* Darker semi-transparent background */
+            padding: 15px;
+            border-radius: 5px;
+            backdrop-filter: blur(3px);
+            border: 1px solid rgba(255, 158, 195, 0.2); /* Subtle border */
+        }
+        
+        /* Audio start button */
+        .start-audio {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            padding: 20px 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            border-radius: 0px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 0, 128, 0.3);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: pulsate 2s infinite alternate;
+            image-rendering: pixelated;
+            letter-spacing: 1px;
+            white-space: nowrap; /* Prevent text wrapping */
+            width: auto; /* Allow button to size based on content */
+            max-width: 90%; /* Prevent overflow on very small screens */
+        }
+        
+        /* Mobile-first responsive adjustments for start-audio button */
+        @media screen and (max-width: 480px) {
+            .start-audio {
+                font-size: 12px;
+                padding: 15px 20px;
+                letter-spacing: 0.5px;
+                border-width: 2px;
+            }
+        }
+        
+        @media screen and (max-width: 320px) {
+            .start-audio {
+                font-size: 10px;
+                padding: 12px 16px;
+            }
+        }
+        
+        /* Responsive annotation styles */
+        @media screen and (max-width: 768px) {
+            .annotation {
+                font-size: 14px;
+                width: 80%; /* Use percentage width instead of fixed width */
+                max-width: 280px; /* Add a max-width to prevent too wide appearance */
+                padding: 12px;
+                margin: 0 auto; /* Center horizontally */
+                left: 50% !important; /* Force left positioning */
+                right: auto !important; /* Reset right positioning */
+                transform: translateX(-50%) translateY(-50%) !important; /* Center properly */
+                top: 40% !important; /* Lower the annotation further for better visibility */
+            }
+            
+            .annotation-title {
+                font-size: 16px;
+            }
+            
+            .annotation-subtitle {
+                font-size: 14px;
+            }
+            
+            .annotation-details {
+                font-size: 16px;
+            }
+            
+            .annotation-artwork {
+                margin-bottom: 12px;
+                max-height: 35vh; /* Limit height to viewport percentage */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .annotation-artwork img {
+                width: 100%;
+                max-width: 100%;
+                height: auto; /* Let height adjust automatically */
+                max-height: 35vh; /* Limit height to viewport percentage */
+                aspect-ratio: auto; /* Allow natural aspect ratio */
+                object-fit: contain; /* Ensure entire image is visible */
+            }
+
+            /* Make get track button more mobile-friendly */
+            .get-track-button {
+                padding: 8px 12px;
+                font-size: 12px;
+                margin-top: 10px;
+            }
+        }
+        
+        /* Extra small devices */
+        @media screen and (max-width: 480px) {
+            .annotation {
+                width: 85%;
+                padding: 10px;
+                top: 42% !important; /* Even lower on very small screens */
+            }
+            
+            .annotation-artwork {
+                max-height: 30vh;
+            }
+            
+            .annotation-artwork img {
+                max-height: 30vh;
+            }
+        }
+        
+        .start-audio:hover {
+            background: rgba(40, 40, 40, 0.8);
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.6), 0 0 50px rgba(255, 0, 128, 0.4);
+            animation: none;
+        }
+        
+        /* Warp Drive effect notification */
+        .warp-drive-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid rgba(255, 150, 255, 0.8);
+            color: #ffccff;
+            padding: 15px 25px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            border-radius: 0px;
+            z-index: 1000;
+            text-align: center;
+            text-shadow: 0 0 8px rgba(255, 100, 255, 0.9);
+            animation: warp-notification 3s ease-in-out forwards;
+            pointer-events: none;
+            opacity: 0;
+            width: max-content;
+            max-width: 90%;
+        }
+        
+        /* Ultra Warp Drive effect notification */
+        .ultra-warp-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 5px solid rgba(100, 200, 255, 0.9);
+            color: #ccffff;
+            padding: 20px 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            border-radius: 0px;
+            z-index: 1000;
+            text-align: center;
+            text-shadow: 0 0 12px rgba(100, 200, 255, 1);
+            animation: ultra-warp-notification 3s ease-in-out forwards;
+            pointer-events: none;
+            opacity: 0;
+            width: max-content;
+            max-width: 90%;
+            letter-spacing: 2px;
+        }
+        
+        /* Fuel gauge for warp drive */
+        .warp-fuel-gauge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            z-index: 100;
+            display: none;
+        }
+        
+        .warp-fuel-level {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #ff3366, #ff66cc);
+            transform-origin: left;
+            transition: transform 0.3s ease-out;
+        }
+        
+        /* Ultrawarp fuel gauge */
+        .ultra-warp-indicator {
+            position: fixed;
+            top: 30px;
+            right: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: #33ccff;
+            text-shadow: 0 0 8px rgba(50, 200, 255, 0.8);
+            display: none;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 8px;
+            letter-spacing: 1px;
+            z-index: 100;
+            text-transform: uppercase;
+            border-left: 3px solid #33ccff;
+        }
+        
+        @keyframes warp-notification {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            30% { transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        }
+        
+        @keyframes ultra-warp-notification {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); filter: hue-rotate(0deg); }
+            15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            20% { transform: translate(-50%, -50%) scale(1.1); filter: hue-rotate(90deg); }
+            30% { transform: translate(-50%, -50%) scale(1); }
+            50% { filter: hue-rotate(180deg); }
+            70% { filter: hue-rotate(270deg); }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); filter: hue-rotate(360deg); }
+        }
+        
+        .interaction-note {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            text-align: center;
+            width: 80%;
+            max-width: 500px;
+            margin-top: 20px;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+            z-index: 999;
+            letter-spacing: 1px;
+            image-rendering: pixelated;
+        }
+        
+        @keyframes pulsate {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 0, 128, 0.3);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 0 25px rgba(0, 0, 0, 0.6), 0 0 50px rgba(255, 0, 128, 0.5);
+            }
+        }
+        
+        .annotation-line {
+            position: absolute;
+            background-color: rgba(255, 158, 195, 0.8); /* Match title color */
+            height: 1.5px;
+            transform-origin: 0 0;
+            z-index: 4;
+            pointer-events: none;
+            box-shadow: 0 0 5px rgba(255, 158, 195, 0.7);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .annotation-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background-color: #fff;
+            border-radius: 50%;
+            z-index: 5;
+            pointer-events: none;
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+            display: none; /* Hide the dot */
+        }
+        
+        .annotation-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #ff9ec3;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.4;
+            image-rendering: pixelated;
+            white-space: nowrap;
+        }
+        
+        .annotation-subtitle {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            color: #d2ebff;
+            opacity: 0.9;
+            line-height: 1.4;
+            image-rendering: pixelated;
+            white-space: nowrap;
+        }
+        
+        .annotation-details {
+            font-family: 'VT323', monospace;
+            margin-top: 6px;
+            font-size: 18px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+            image-rendering: pixelated;
+            white-space: nowrap;
+            margin-bottom: 12px;
+        }
+        
+        .get-track-button {
+            display: block;
+            margin-top: 15px;
+            padding: 10px 0;
+            color: #fff;
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            text-decoration: none;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+ 
+            cursor: pointer;
+            animation: neon-pulse 1.5s infinite alternate;
+            margin-bottom: 8px;
+        }
+        
+ 
+        
+        @keyframes neon-pulse {
+            from {
+                box-shadow: 0 0 10px #00ff9c, 0 0 20px rgba(0, 255, 156, 0.5);
+            }
+            to {
+                box-shadow: 0 0 15px #00ff9c, 0 0 30px rgba(0, 255, 156, 0.7);
+            }
+        }
+        
+        .annotation-artwork {
+            margin-bottom: 15px;
+            text-align: center;
+            image-rendering: pixelated;
+            width: 100%;
+            overflow: hidden; /* Prevent image overflow */
+        }
+        
+        .annotation-artwork img {
+            width: 100%; /* Full width */
+            border: 2px solid rgba(255, 158, 195, 0.4); /* Match title color */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            object-fit: contain; /* Show full image without cropping */
+            max-height: 40vh; /* Limit height to 40% of viewport height */
+            height: auto; /* Maintain aspect ratio */
+        }
+        
+        .annotation:hover .annotation-artwork img {
+            border-color: rgba(255, 158, 195, 0.7);
+            box-shadow: 0 0 20px rgba(255, 158, 195, 0.2);
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            color: white;
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+            display: none; /* Changed from flex to none to completely hide the controls */
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 15px;
+            image-rendering: pixelated;
+        }
+        
+        /* Controls are now completely hidden with display: none
+        body:hover .controls {
+            opacity: 1;
+        } */
+        button {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #444;
+        }
+        button.active {
+            background: #1a6fb5;
+            border-color: #2a8fd5;
+        }
+        .visualizer {
+            width: 200px;
+            height: 30px;
+            background: #111;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        .level {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #33aaff, #bb33ff);
+            transition: width 0.1s;
+        }
+        .status {
+            margin-left: 10px;
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+            image-rendering: pixelated;
+        }
+        #audioVideo {
+            display: none; /* Hide video element but still use it for audio */
+        }
+        
+        /* Viewfinder display for points and stats */
+        .viewfinder-display {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            color: #33aaff;
+            font-family: 'Pixelify Sans', monospace;
+            z-index: 100;
+            min-width: 200px;
+            font-size: 1.1em; /* Increase text size by 10% */
+        }
+        
+        /* Points earned animation */
+        .points-earned {
+            position: fixed;
+            color: #ffcc00;
+            font-size: 18px; /* Adjusted size for Press Start 2P */
+            font-weight: bold;
+            font-family: 'Press Start 2P', cursive; /* Use Press Start 2P font */
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+            z-index: 9999;
+            opacity: 1;
+            transition: all 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Slower, more bouncy easing */
+            pointer-events: none; /* Prevent interaction with the points display */
+            will-change: transform, opacity; /* Optimize for animation performance */
+        }
+        
+        /* Responsive styles for mobile devices */
+        @media (max-width: 768px) {
+            .viewfinder-display {
+                top: 10px;
+                left: 10px;
+                padding: 10px;
+                font-size: 1em; /* Adjusted to maintain readability */
+                min-width: 150px;
+            }
+            
+            .points-earned {
+                font-size: 14px; /* Adjusted for Press Start 2P on mobile */
+            }
+            
+            .points-value {
+                font-size: 16px; /* Adjusted for Press Start 2P on mobile */
+            }
+            
+            .points-label {
+                font-size: 12px; /* Adjusted for Press Start 2P on mobile */
+            }
+            
+            .viewfinder-title {
+                font-size: 18px; /* Adjusted for mobile */
+            }
+        }
+        
+        .viewfinder-title {
+            text-align: center;
+            font-size: 20px; /* Increased by 10% from 18px */
+            margin-bottom: 10px;
+            color: #bb33ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Pixelify Sans', monospace; /* Ensure pixel font */
+        }
+        
+        .viewfinder-data {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .data-label {
+            color: #bb33ff;
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 1.1em; /* Increase text size by 10% */
+        }
+        
+        .points-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px; /* Adjusted size for Press Start 2P */
+            color: #bb33ff;
+        }
+        
+        .data-value {
+            font-weight: bold;
+            color: #33aaff;
+            text-shadow: 0 0 5px rgba(51, 170, 255, 0.8);
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 1.1em; /* Increase text size by 10% */
+        }
+        
+        .points-value {
+            font-size: 22px; /* Adjusted size for Press Start 2P */
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+            font-family: 'Press Start 2P', cursive;
+            letter-spacing: -1px; /* Tighten letter spacing slightly */
+        }
+        
+        /* Star cursor style */
+        .star-cursor {
+            cursor: crosshair;
+        }
+        
+        /* Credits style */
+        .credits {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 8px;
+            border-radius: 3px;
+            pointer-events: none;
+            zoom: 0.5;
+            width: auto;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        /* ID avatar circle style */
+        
+        /* Achievement notification indicator */
+        .achievement-notification {
+            position: fixed;
+            top: 80px; /* Position below the score which is usually at the top */
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffcc00;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            color: #ffcc00;
+            z-index: 9000;
+            display: none;
+            cursor: pointer;
+            pointer-events: auto;
+            animation: pulse-notification 2s infinite;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            text-shadow: 0 0 5px rgba(255, 204, 0, 0.7);
+            max-width: 200px;
+            text-align: center;
+            transform-origin: left center;
+        }
+        
+        @keyframes pulse-notification {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .achievement-notification:hover {
+            background-color: rgba(20, 20, 20, 0.95);
+            transform: scale(1.05);
+        }
+        
+        /* Modal overlay for achievements */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            display: none;
+            pointer-events: auto;
+        }
+        
+        /* Bandcamp redemption codes display */
+        .bandcamp-codes-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.95);
+            border: 3px solid #11ccff;
+            border-radius: 8px;
+            padding: 20px;
+            color: #ffffff;
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            z-index: 9999; /* Ensure it's above everything else */
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 0 30px rgba(17, 204, 255, 0.8);
+            display: none;
+            pointer-events: auto; /* Ensure it can be interacted with */
+        }
+        
+        .bandcamp-codes-container h2 {
+            color: #ffcc00;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .bandcamp-codes-list {
+            background-color: rgba(40, 40, 40, 0.8);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .bandcamp-code {
+            margin: 8px 0;
+            color: #11ccff;
+            padding: 8px;
+            border-radius: 3px;
+            position: relative;
+            border: 1px solid rgba(17, 204, 255, 0.3);
+            font-family: monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-align: center;
+            user-select: all; /* Makes the text easier to select */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .copy-button {
+            background-color: rgba(255, 204, 0, 0.8);
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            padding: 6px 10px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .copy-button:hover {
+            background-color: rgba(255, 204, 0, 1);
+            transform: scale(1.05);
+        }
+        
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* Container for the code and button pair */
+        .code-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            justify-content: center;
+        }
+        
+        .code-copied-message {
+            position: absolute;
+            right: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 204, 0, 0.9);
+            color: black;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-family: Arial, sans-serif;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        
+        /* Mobile adjustments for copy feedback */
+        @media (max-width: 768px) {
+            .code-container {
+                flex-direction: column;
+                margin: 15px 0;
+            }
+            
+            .copy-button {
+                margin-left: 0;
+                margin-top: 8px;
+                padding: 8px 12px;
+                width: 100%;
+                max-width: 200px;
+            }
+            
+            .code-copied-message {
+                right: auto;
+                left: 50%;
+                top: -25px;
+                transform: translateX(-50%);
+                z-index: 10;
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            
+            .bandcamp-code {
+                position: relative; /* Ensure relative positioning for mobile */
+                margin: 15px 0; /* More vertical space between codes on mobile */
+            }
+        }
+        
+        .bandcamp-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #11ccff;
+            color: #000;
+            font-size: 14px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        
+        .bandcamp-link:hover {
+            background-color: #ffcc00;
+            transform: scale(1.05);
+        }
+        
+        .close-codes-btn {
+            margin-top: 15px;
+            padding: 8px 12px;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+        }
+        
+        .close-codes-btn:hover {
+            background-color: #555;
+        }
+        
+        /* Avatar styling */
+        .id-avatar {
+            position: fixed;
+            left: 50%;
+            top: 75%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(30, 30, 40, 0.7);
+            border: 2px solid rgba(100, 200, 255, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #FFFFFF;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            text-shadow: 0 0 5px rgba(100, 200, 255, 0.9);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), 0 0 30px rgba(100, 150, 255, 0.3);
+            z-index: 100;
+            pointer-events: auto; /* Enable pointer events to make it clickable */
+            cursor: pointer; /* Show pointer cursor on hover */
+            user-select: none;
+            animation: id-avatar-pulse 4s infinite alternate ease-in-out;
+            backdrop-filter: blur(2px);
+            letter-spacing: 1px;
+            transition: all 0.3s ease-out;
+            opacity: 0; /* Start hidden */
+            visibility: hidden; /* Fully hidden until audio starts */
+        }
+        
+        .id-avatar:hover {
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+        
+        .id-avatar:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+        
+        /* Animation for the ID avatar */
+        @keyframes id-avatar-pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), 0 0 30px rgba(100, 150, 255, 0.3);
+                border-color: rgba(100, 200, 255, 0.7);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.6), 0 0 40px rgba(100, 150, 255, 0.5);
+                border-color: rgba(150, 220, 255, 0.9);
+            }
+        }
+        
+        /* Responsive styles for ID avatar */
+        @media screen and (max-width: 768px) {
+            .id-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 12px;
+                top: 75%;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            .id-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 10px;
+                top: 80%; /* Move it a bit lower on very small screens */
+            }
+        }
+    </style>
+</head>
+<body onscroll="window.scrollTo(0, 0);">
+    <script>
+    // Prevent scrolling with various event handlers
+    function preventScroll(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+    
+    // Apply scroll prevention when the page loads
+    window.addEventListener('load', function() {
+        // Prevent default scrolling behavior
+        document.addEventListener('wheel', preventScroll, { passive: false });
+        document.addEventListener('touchmove', preventScroll, { passive: false });
+        document.addEventListener('keydown', function(e) {
+            // Prevent scrolling with arrow keys, space, page up/down
+            if([32, 33, 34, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+                e.preventDefault();
+                return false;
+            }
+        }, { passive: false });
+        
+        // Force scroll position to top
+        window.scrollTo(0, 0);
+    });
+    </script>
+    <!-- Viewfinder display for points -->
+    <div class="viewfinder-display">
+        <div class="viewfinder-data">
+            <div class="data-row">
+                <span class="data-label points-label">POINTS:</span>
+                <span class="data-value points-value" id="points-display">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scientific annotation elements -->
+    <div id="annotation" class="annotation">
+        <div class="annotation-artwork">
+            <img src="" alt="Track Artwork" id="annotationArtwork">
+        </div>
+        <div class="annotation-title" id="annotationTitle"></div>
+        <div class="annotation-subtitle" id="annotationArtist"></div>
+        <div class="annotation-details" id="annotationDetails"></div>
+        <a href="" target="_blank" class="get-track-button" id="annotationLink">GET THIS TRACK</a>
+    </div>
+    <div id="annotationLine" class="annotation-line"></div>
+    <div id="annotationDot" class="annotation-dot"></div>
+    
+    <!-- Start audio button (required due to browser autoplay policies) -->
+    <button id="startAudioBtn" class="start-audio">CLICK TO START AUDIO</button>
+    <div id="interactionNote" class="interaction-note">Browsers require user interaction before playing audio.<br>Click the button to begin the full audio-visual experience.</div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Main configuration parameters
+        const CONFIG = {
+            pixelSize: 4,          // Size of each "pixel" in our pixel art
+            starCount: 800,        // Further increased star count for more immersive effect
+            starSpeed: 0.6,        // Dramatically increased speed for faster space travel effect
+            warpDriveThreshold: 800,  // Points threshold to activate warp drive effect
+            warpDriveSpeed: 4.5,      // Speed multiplier during warp drive
+            warpDriveStretch: 8.0,    // How much stars stretch during warp drive
+            ultraWarpThreshold: 2000,  // Points threshold to activate ULTRA warp drive
+            ultraWarpSpeed: 7.0,      // Speed multiplier during ULTRA warp
+            ultraWarpStretch: 32.0,   // How much stars stretch during ULTRA warp
+            particleCount: 150,    // Number of particles for the breaking apart effect
+            bpm: 170,              // Fallback BPM for animation sync if no audio
+            beatDuration: 60000 / 170, // Duration of one beat in ms
+            explosionFrequency: 0.005, // Reduced chance of star explosion for calmer feel
+            objectPulseAmount: 0.35,   // Increased pulse amount for more pronounced effect
+            audioReactivity: 0.8,  // How much the audio affects the animation (0-1)
+            resolution: {          // Render resolution
+                width: 200,        // 200 * pixelSize = 800px
+                height: 150        // 150 * pixelSize = 600px
+            },
+            // Primary audio configuration
+            audioUrl: "https://cdn-prod-1.labelgrid.com/labels/plushrecs/320/20574c2e-ffac-4a35-8953-eabab0875919.mp3?ts=1740653528", // Primary audio URL
+            trackInfo: {
+                title: "WITCHY & WOBBLE",
+                artist: "DJ AIRWALK",
+                catalog: "PLUSH120",
+                year: "2025",
+                artworkUrl: "../../cat/PLUSH120A/cover.jpg",
+                purchaseUrl: "https://plush.bandcamp.com/album/witchy-wobble",
+                buttonText: "GET THIS TRACK"
+            },
+            // Fallback audio configuration (used when primary track finishes)
+            fallbackAudioUrl: "https://azura.drmnbss.org:8010/radio.mp3",
+            fallbackTrackInfo: {
+                title: "PLUSH RADIO",
+                artist: "Playlist Rotation",
+                catalog: "PLUSH247",
+                year: "", // No specific year for the stream
+                artworkUrl: "images/atmospheric_dnb_sq.png", // Use label logo for the stream
+                purchaseUrl: "https://youtube.com/dnbradio/live",
+                buttonText: "LISTEN ON YOUTUBE"
+            },
+            audioThresholds: {
+                bass: [20, 150],    // Bass frequency range
+                mid: [150, 2000],   // Mid frequency range
+                high: [2000, 16000] // High frequency range
+            },
+            // Star explosion settings
+            starExplosionParticles: 20,  // Number of particles per star explosion
+            starExplosionDuration: 1.5,  // Duration of explosion animation in seconds
+            starExplosionSpeed: 2.0,     // Speed of explosion particles
+            starPointsBase: 10,          // Base points for exploding a star
+            starPointsMultiplier: 2.0    // Multiplier for points based on star depth
+        };
+
+        // Calculate beat timing (fallback)
+        const BEAT_INTERVAL = 60 / CONFIG.bpm;
+
+        // Scene setup
+        let scene, camera, renderer, clock;
+        let cameraZoom = 5; // Initial camera zoom level
+        const cameraZoomMin = 3; // Minimum zoom (farthest distance)
+        const cameraZoomMax = 7; // Maximum zoom (closest distance)
+        const zoomCycleDuration = 60; // Complete cycle duration in seconds
+        let starField, centerObject;
+        let lastBeat = 0;
+
+        // Audio setup
+        let audioContext, audioAnalyser, audioSource, dataArray, audioInitialized = false;
+        let bassEnergy = 0, midEnergy = 0, highEnergy = 0, beatDetected = false;
+        let audioLevel = 0, smoothedLevel = 0, beatHistory = [];
+        let videoElement = null;
+        let demoMode = false;
+        let audioPlaying = false;
+        let annotationTimer = null;
+        let ignoreNextDocumentClick = false; // Flag to ignore next document click
+        let demoData = {
+            bassPattern: [],
+            midPattern: [],
+            highPattern: [],
+            beatPattern: [],
+            time: 0
+        };
+        
+        // Particle system for star debris
+        let particleSystem;
+        let particleData = [];
+        
+        // Game mechanics variables
+        let points = 0;
+        let raycaster, mouse;
+        let starExplosions = [];
+        let lastPointsUpdate = 0;
+        let warpDriveActive = false;
+        let ultraWarpActive = false;
+        let warpDriveActivatedTime = 0;
+        let ultraWarpActivatedTime = 0;
+        let warpDriveEffectIntensity = 0; // 0 to 1 for transition effect
+        let ultraWarpEffectIntensity = 0; // 0 to 1 for ultrawarp transition effect
+        let lostPoints = 0; // Track how many points have been lost
+        let lastPointDeduction = 0; // Timer for point deductions
+        let pointDeductionInterval = 3; // Deduct points every 3 seconds
+        let pointDeductionAmount = 5; // Amount of points to deduct
+        let ultraPointDeductionAmount = 10; // More points deducted during ultrawarp
+        const criticalFuelPercentage = 0.01; // 1% fuel level is critical
+        const maxLostPoints = 100; // How many points can be lost before warp drive deactivates
+        let warpCooldown = false; // Flag to track if warp is on cooldown
+        let pointsAtDeactivation = 0; // Points when warp was deactivated
+        const pointsNeededForReactivation = 50; // Need to earn this many additional points
+        
+        // Track recent point positions to avoid overlapping
+        const recentPointPositions = [];
+        const MAX_RECENT_POSITIONS = 5; // Number of recent positions to track
+        
+        // Variable to track if codes have been shown
+        let codesShown = false;
+        
+        // Animation control
+        let isPaused = false;
+        
+        // Bandcamp codes array - all codes from codes.txt
+        const bandcampCodes = [
+            "ymtp-66je",
+            "38z8-yk93",
+            "ak2y-bkk4",
+            "rymz-h9zm",
+            "d28z-v8k6",
+            "uzzx-gmzv",
+            "xytj-u689",
+            "qkk8-e67z",
+            "9nyt-3yq6",
+            "zdky-hu6y",
+            "yjyz-jpzf",
+            "yguz-krym",
+            "3twk-6ln6",
+            "azjk-km5k",
+            "8y92-66b8",
+            "t2td-kk4n"
+        ];
+        
+        // Initialize the scene
+        function init() {
+            // Create center click area for annotations
+            createCenterClickArea();
+            
+            // Create main scene
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 1000); // Wider field of view
+            camera.position.z = cameraZoom; // Use the cameraZoom variable
+            
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.domElement.style.position = 'fixed';
+            renderer.domElement.style.top = '0';
+            renderer.domElement.style.left = '0';
+            document.body.appendChild(renderer.domElement);
+            
+            // Add window resize handler
+            window.addEventListener('resize', () => {
+                // Prevent any scrolling that might occur during resize
+                window.scrollTo(0, 0);
+                
+                // Update camera and renderer
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                
+                // Ensure renderer maintains fixed position
+                renderer.domElement.style.position = 'fixed';
+                renderer.domElement.style.top = '0';
+                renderer.domElement.style.left = '0';
+            });
+            
+            // Setup clock for animations
+            clock = new THREE.Clock();
+            
+            // Initialize raycaster and mouse for star clicking
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            // Add click event listener for star explosions
+            renderer.domElement.addEventListener('click', handleStarClick);
+            renderer.domElement.classList.add('star-cursor');
+            
+            // Add mouse wheel event listener for camera zoom control
+            window.addEventListener('wheel', handleMouseWheel, { passive: false });
+            
+            // Add touch events for pinch zoom on mobile devices
+            document.addEventListener('touchstart', handleTouchStart, { passive: false });
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd, { passive: false });
+            
+            // Create stars
+            createStars();
+            
+            // Create star debris particle system
+            createParticleSystem();
+            
+            // Create center object
+            createCenterObject();
+            
+            // Create UI elements
+            createUIElements();
+            
+            // Start in demo mode by default
+            startDemoMode();
+            
+            // Set up click handler for the start audio button
+            document.getElementById('startAudioBtn').addEventListener('click', function(event) {
+                // Start the real audio stream
+                startAudio();
+                
+                // Set flag to ignore the next document click
+                ignoreNextDocumentClick = true;
+                
+                // Prevent default and stop propagation
+                event.preventDefault();
+                event.stopPropagation();
+            });
+            
+            // Start animation loop
+            animate();
+        }
+
+        // Initialize the scientific annotation
+        function initializeAnnotation() {
+            // Position annotation text to the left of the center object
+            const annotation = document.getElementById('annotation');
+            
+            // Position differently based on screen size
+            if (window.innerWidth <= 768) {
+                // Mobile positioning - centered and lowered for better visibility
+                annotation.style.top = '40%'; // Moved further down for better mobile layout
+                annotation.style.left = '50%';
+                annotation.style.right = 'auto';
+                annotation.style.transform = 'translateX(-50%) translateY(-50%)';
+            } else {
+                // Desktop positioning - right side positioning
+                annotation.style.top = '35%';
+                annotation.style.left = 'auto'; 
+                annotation.style.right = '13%';
+                annotation.style.transform = 'translateY(-50%)';
+            }
+            
+            // Add click event listener to document to hide annotations when clicking outside
+            document.addEventListener('click', function(event) {
+                // Check if we should ignore this click (e.g., right after starting audio)
+                if (ignoreNextDocumentClick) {
+                    ignoreNextDocumentClick = false;
+                    return;
+                }
+                
+                // Get references to annotation elements
+                const annotationElem = document.getElementById('annotation');
+                const annotationLine = document.getElementById('annotationLine');
+                const annotationDot = document.getElementById('annotationDot');
+                
+                // Only proceed if the annotation is visible
+                if (annotationElem.style.opacity === '1') {
+                    // Check if click is outside of annotation and not on the ID avatar
+                    if (!annotationElem.contains(event.target) && 
+                        event.target.id !== 'id-avatar' && 
+                        !document.getElementById('id-avatar')?.contains(event.target) &&
+                        event.target.id !== 'startAudioBtn') {
+                        
+                        // Hide the annotation and related elements
+                        annotationElem.style.opacity = '0';
+                        annotationElem.style.visibility = 'hidden';
+                        annotationElem.style.pointerEvents = 'none';
+                        if (annotationLine) annotationLine.style.opacity = '0';
+                        if (annotationDot) annotationDot.style.opacity = '0';
+                        
+                        // Reset auto-show flag
+                        window.autoShowAnnotations = false;
+                    }
+                }
+            });
+            
+            // Load artwork image and update annotation text
+            updateAnnotationContent(CONFIG.trackInfo);
+            
+            const artworkImg = document.getElementById('annotationArtwork');
+            artworkImg.onerror = function() {
+                // If artwork image fails to load, hide the container
+                document.querySelector('.annotation-artwork').style.display = 'none';
+            };
+            
+            // Initially position the dot and line
+            const dot = document.getElementById('annotationDot');
+            const line = document.getElementById('annotationLine');
+            dot.style.top = '50%';
+            dot.style.left = '50%';
+            line.style.top = '50%';
+            line.style.left = '50%';
+            line.style.opacity = '0'; // Ensure line starts hidden
+            
+            // Set up timer to show annotations automatically
+            setupAnnotationTimer();
+            
+            // Hover area for annotations has been removed to prevent interference with other click events
+            
+            // Update annotation position on window resize
+            window.addEventListener('resize', function() {
+                // Position differently based on screen size
+                if (window.innerWidth <= 768) {
+                    // Mobile positioning - moved down by 10%
+                    annotation.style.top = '30%'; // Moved from 20% to 30% (10% lower)
+                    annotation.style.left = '50%';
+                    annotation.style.right = 'auto';
+                    annotation.style.transform = 'translateX(-50%) translateY(-50%)';
+                } else {
+                    // Desktop positioning - right side positioning - moved down by 10%
+                    annotation.style.top = '35%'; // Moved from 25% to 35% (10% lower)
+                    annotation.style.left = 'auto';
+                    annotation.style.right = '13%'; // Moved left 10% (from 3% to 13%)
+                    annotation.style.transform = 'translateY(-50%)';
+                }
+            });
+            
+            // Show line when hovering over annotation
+            annotation.addEventListener('mouseenter', () => {
+                // Keep the line visible when hovering over annotation
+                line.style.opacity = '1';
+                
+                // Cancel any auto-hide timers when hovering
+                if (annotationTimer) {
+                    clearTimeout(annotationTimer);
+                }
+            });
+            
+            annotation.addEventListener('mouseleave', () => {
+                // Hide the line when mouse leaves the annotation, but keep annotation visible
+                // if it was shown by clicking the info button (controlled by autoShowAnnotations)
+                if (!window.autoShowAnnotations) {
+                    line.style.opacity = '0';
+                }
+                // Annotations will only be hidden by clicking the info button or elsewhere on the page
+            });
+            
+            // Track if hovering over the object
+            let isHoveringObject = false;
+            
+            // Hover area event listeners have been removed to prevent interference with other click events
+        }
+        
+        // Update annotation position to point at the center object
+        function updateAnnotation() {
+            if (!centerObject) return;
+            
+            // Get the center object's position in 3D space
+            const vector = new THREE.Vector3();
+            vector.setFromMatrixPosition(centerObject.matrixWorld);
+            
+            // Project 3D position to 2D screen position
+            vector.project(camera);
+            
+            // Convert to screen coordinates
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
+            
+            // Don't position the dot as we're hiding it
+            // const dot = document.getElementById('annotationDot');
+            // dot.style.left = x + 'px';
+            // dot.style.top = y + 'px';
+            
+            // Get the annotation position
+            const annotation = document.getElementById('annotation');
+            const annotRect = annotation.getBoundingClientRect();
+            
+            let lineStartX, lineStartY;
+            
+            // Position line differently based on screen size
+            if (window.innerWidth <= 768) {
+                // Mobile - line starts from bottom of annotation
+                lineStartX = annotRect.left + annotRect.width * 0.5; // Center of annotation horizontally
+                lineStartY = annotRect.bottom; // Bottom of annotation
+            } else {
+                // Desktop - line starts from left side of annotation (since it's on the right side of screen)
+                lineStartX = annotRect.left; // Left edge of annotation
+                lineStartY = annotRect.top + annotRect.height * 0.5; // Middle of annotation vertically
+            }
+            
+            // Position the line
+            const line = document.getElementById('annotationLine');
+            const length = Math.sqrt(Math.pow(x - lineStartX, 2) + Math.pow(y - lineStartY, 2));
+            const angle = Math.atan2(y - lineStartY, x - lineStartX);
+            
+            line.style.width = length + 'px';
+            line.style.left = lineStartX + 'px';
+            line.style.top = lineStartY + 'px';
+            line.style.transform = `rotate(${angle}rad)`;
+            
+            // Make annotation pulse with audio energy if we have audio data
+            if (audioContext && smoothedLevel > 0) {
+                const scaleFactor = 1 + (smoothedLevel * 0.1); // subtle pulse
+                annotation.style.transform = `translateY(-50%) scale(${scaleFactor})`;
+                line.style.height = (1.5 + smoothedLevel * 1.5) + 'px'; // More pronounced effect
+                line.style.boxShadow = `0 0 ${5 + smoothedLevel * 8}px rgba(255, 158, 195, ${0.7 + smoothedLevel * 0.3})`; // Dynamic glow
+            }
+        }
+        
+        // Initialize audio after user interaction
+        function startAudio() {
+            // Remove the start button and interaction note
+            const startBtn = document.getElementById('startAudioBtn');
+            const interactionNote = document.getElementById('interactionNote');
+            
+            if (startBtn) {
+                startBtn.style.opacity = '0';
+                setTimeout(() => {
+                    startBtn.style.display = 'none';
+                }, 500);
+            }
+            
+            if (interactionNote) {
+                interactionNote.style.opacity = '0';
+                setTimeout(() => {
+                    interactionNote.style.display = 'none';
+                }, 500);
+            }
+            
+            // Set audio as playing
+            audioPlaying = true;
+            
+            // Show the ID avatar with a delay to let other elements fade out first
+            setTimeout(() => {
+                const idAvatar = document.getElementById('id-avatar');
+                if (idAvatar) {
+                    idAvatar.style.visibility = 'visible';
+                    idAvatar.style.opacity = '1';
+                }
+            }, 800); // Slightly longer delay than the audio button fadeout
+            
+            // Stop demo mode if it's running
+            if (demoMode) {
+                stopDemoMode();
+            }
+            
+            // Initialize audio context if not already done
+            if (!audioContext) {
+                try {
+                    document.querySelector('.status').textContent = 'Connecting to audio...';                    
+                    initStreamAudio();
+                } catch (e) {
+                    console.error('Error starting audio:', e);
+                    // Show error message
+                    document.querySelector('.status').textContent = 'Audio error - using demo';  
+                    startDemoMode();
+                }
+            } else if (audioContext.state === 'suspended') {
+                // Resume audio context if it was suspended
+                audioContext.resume().then(() => {
+                    document.querySelector('.status').textContent = 'Audio resumed';
+                }).catch(err => {
+                    console.error('Failed to resume audio context:', err);
+                });
+            }
+            
+            // Also try to play the video element if it exists and is paused
+            if (videoElement && videoElement.paused) {
+                videoElement.play().catch(err => {
+                    console.error('Failed to play video element:', err);
+                });
+            }
+        }
+        
+        // Create UI elements
+        function createUIElements() {
+            const controls = document.createElement('div');
+            controls.className = 'controls';
+            
+            // Create hidden video element for audio stream
+            videoElement = document.createElement('video');
+            videoElement.id = 'audioVideo';
+            videoElement.setAttribute('crossorigin', 'anonymous');
+            videoElement.setAttribute('autoplay', ''); // Add autoplay attribute
+            videoElement.setAttribute('muted', ''); // Initially muted to bypass browser restrictions
+            videoElement.setAttribute('playsinline', ''); // Better compatibility for mobile
+            document.body.appendChild(videoElement);
+            
+            // Demo mode button
+            const demoButton = document.createElement('button');
+            demoButton.textContent = 'Start Demo Mode';
+            demoButton.addEventListener('click', () => {
+                if (demoMode) {
+                    stopDemoMode();
+                    demoButton.textContent = 'Start Demo Mode';
+                    demoButton.classList.remove('active');
+                } else {
+                    disconnectAudio();
+                    startDemoMode();
+                    demoButton.textContent = 'Stop Demo Mode';
+                    demoButton.classList.add('active');
+                    streamButton.textContent = 'Try Real Stream';
+                    streamButton.classList.remove('active');
+                }
+            });
+            
+            // Stream button
+            const streamButton = document.createElement('button');
+            streamButton.textContent = 'Try Real Stream';
+            streamButton.addEventListener('click', () => {
+                if (audioInitialized && !demoMode) {
+                    disconnectAudio();
+                    streamButton.textContent = 'Try Real Stream';
+                    streamButton.classList.remove('active');
+                } else {
+                    stopDemoMode();
+                    initStreamAudio();
+                    streamButton.textContent = 'Disconnect Stream';
+                    streamButton.classList.add('active');
+                    demoButton.textContent = 'Start Demo Mode';
+                    demoButton.classList.remove('active');
+                }
+            });
+            
+            // Audio level visualizer
+            const visualizer = document.createElement('div');
+            visualizer.className = 'visualizer';
+            
+            const level = document.createElement('div');
+            level.className = 'level';
+            visualizer.appendChild(level);
+            
+            // Status indicator
+            const status = document.createElement('div');
+            status.className = 'status';
+            status.textContent = 'No audio connected';
+            
+            // Add elements to controls
+            controls.appendChild(demoButton);
+            controls.appendChild(streamButton);
+            controls.appendChild(visualizer);
+            controls.appendChild(status);
+            document.body.appendChild(controls);
+            
+            // Initialize demo patterns
+            initDemoPatterns();
+        }
+        
+        // Initialize demo audio patterns
+        function initDemoPatterns() {
+            // Create patterns for each frequency range
+            
+            // Bass pattern (very gentle and slow waves)
+            const bassLength = 200; // Longer pattern for more gradual changes
+            for (let i = 0; i < bassLength; i++) {
+                // Create a smooth, gentle bass pattern
+                const bassBeat = 0.2 + 0.15 * Math.sin(i * 0.03) + 0.1 * Math.sin(i * 0.01);
+                demoData.bassPattern.push(bassBeat);
+                
+                // Very occasional subtle beat pattern
+                demoData.beatPattern.push(i % 32 === 0 ? true : false);
+            }
+            
+            // Mid pattern (slow, ambient changes)
+            const midLength = 180;
+            for (let i = 0; i < midLength; i++) {
+                // Gentle waves in mid frequencies
+                const midValue = 0.2 + 0.15 * Math.sin(i * 0.02) + 0.1 * Math.sin(i * 0.05);
+                demoData.midPattern.push(midValue);
+            }
+            
+            // High pattern (soft ambient shimmer)
+            const highLength = 160;
+            for (let i = 0; i < highLength; i++) {
+                // Subtle, slow-changing high frequencies
+                const highValue = 0.1 + 0.15 * Math.sin(i * 0.03) + 0.05 * Math.sin(i * 0.07);
+                demoData.highPattern.push(highValue);
+            }
+        }
+        
+        // Start demo mode with synthetic audio data
+        function startDemoMode() {
+            demoMode = true;
+            audioInitialized = false;
+            audioPlaying = true; // Consider demo mode as playing audio
+            demoData.time = 0;
+            document.querySelector('.status').textContent = 'Demo mode active';
+            
+            // Set up annotation timer for demo mode
+            setupAnnotationTimer();
+        }
+        
+        // Stop demo mode
+        function stopDemoMode() {
+            if (demoMode) {
+                demoMode = false;
+                audioPlaying = false; // No audio playing when demo mode stops
+                document.querySelector('.status').textContent = 'No audio connected';
+                
+                // Hide annotations when demo mode stops
+                const annotation = document.getElementById('annotation');
+                const line = document.getElementById('annotationLine');
+                if (annotation && line) {
+                    annotation.style.opacity = '0';
+                    line.style.opacity = '0';
+                }
+                
+                // Clear annotation timer
+                if (annotationTimer) {
+                    clearTimeout(annotationTimer);
+                    annotationTimer = null;
+                }
+                window.autoShowAnnotations = false;
+            }
+        }
+        
+        // Disconnect current audio source
+        function disconnectAudio() {
+            if (audioInitialized && audioSource) {
+                try {
+                    // Clear all monitoring and heartbeat intervals
+                    if (audioContextMonitoringInterval) {
+                        clearInterval(audioContextMonitoringInterval);
+                        audioContextMonitoringInterval = null;
+                    }
+                    
+                    if (audioHeartbeatInterval) {
+                        clearInterval(audioHeartbeatInterval);
+                        audioHeartbeatInterval = null;
+                    }
+                    
+                    // Clean up silent audio node if exists
+                    if (silentAudioNode) {
+                        try {
+                            silentAudioNode.stop();
+                            silentAudioNode.disconnect();
+                            silentAudioNode = null;
+                        } catch (e) {}
+                    }
+                    
+                    // Stop video element
+                    if (videoElement) {
+                        videoElement.pause();
+                        videoElement.src = '';
+                        videoElement.load();
+                    }
+                    
+                    // Disconnect from audio graph
+                    audioSource.disconnect();
+                    audioAnalyser.disconnect();
+                    
+                    // Close audio context if possible
+                    if (audioContext && audioContext.state !== 'closed') {
+                        audioContext.close().catch(e => console.log('Error closing audio context:', e));
+                    }
+                } catch (e) {
+                    console.error('Error disconnecting audio:', e);
+                }
+                
+                audioInitialized = false;
+                audioPlaying = false;
+                document.querySelector('.status').textContent = 'No audio connected';
+                
+                // Hide annotations when audio is disconnected
+                const annotation = document.getElementById('annotation');
+                const line = document.getElementById('annotationLine');
+                if (annotation && line) {
+                    annotation.style.opacity = '0';
+                    line.style.opacity = '0';
+                }
+                
+                // Clear annotation timer
+                if (annotationTimer) {
+                    clearTimeout(annotationTimer);
+                    annotationTimer = null;
+                }
+                window.autoShowAnnotations = false;
+            }
+        }
+        
+        // Initialize stream audio using video element
+        function initStreamAudio() {
+            try {
+                // Detect Safari browser
+                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                
+                // Create audio context with appropriate options
+                const audioContextOptions = {};
+                if (isSafari || isIOS) {
+                    // Safari-specific options if needed
+                    audioContextOptions.latencyHint = 'interactive';
+                    audioContextOptions.sampleRate = 44100; // Standard sample rate
+                }
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)(audioContextOptions);
+                
+                // Create analyzer with Safari-friendly settings
+                audioAnalyser = audioContext.createAnalyser();
+                audioAnalyser.fftSize = 2048;
+                audioAnalyser.smoothingTimeConstant = isSafari ? 0.9 : 0.85; // Smoother for Safari
+                
+                // Get buffer size and create data array
+                const bufferLength = audioAnalyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                
+                // Set up the video element for audio streaming with optimized settings
+                videoElement.setAttribute('crossorigin', 'anonymous');
+                videoElement.src = CONFIG.audioUrl;
+                videoElement.load();
+                
+                // Add ended event to switch to fallback when the track finishes
+                videoElement.addEventListener('ended', function() {
+                    switchToFallbackAudio();
+                });
+                
+                // Safari-specific video element settings
+                videoElement.loop = false; // Don't loop as we want to switch to fallback
+                videoElement.playsinline = true; // Important for iOS
+                videoElement.controls = false; // Hide controls
+                videoElement.muted = false; // Ensure not muted
+                videoElement.autoplay = true; // Try autoplay
+                videoElement.volume = 1.0; // Maximum volume
+                
+                // Add error handling
+                videoElement.onerror = (e) => {
+                    console.error('Video element error:', e);
+                    document.querySelector('.status').textContent = 'Stream unavailable';
+                };
+                
+                // Force iOS/Safari to keep sound playing
+                if (isSafari || isIOS) {
+                    // Add event listeners for common user actions to resume audio
+                    const resumeAudio = () => {
+                        if (audioContext.state === 'suspended') {
+                            audioContext.resume();
+                        }
+                        if (videoElement.paused && audioPlaying) {
+                            videoElement.play();
+                        }
+                    };
+                    
+                    document.addEventListener('click', resumeAudio, {passive: true});
+                    document.addEventListener('touchstart', resumeAudio, {passive: true});
+                    document.addEventListener('keydown', resumeAudio, {passive: true});
+                }
+                
+                // Create source from video element
+                audioSource = audioContext.createMediaElementSource(videoElement);
+                
+                // Safari-friendly connection with gain node for volume control
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = 1.0; // Full volume
+                
+                audioSource.connect(audioAnalyser);
+                audioAnalyser.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Set up periodic audio context state check with enhanced Safari fixes
+                startAudioContextMonitoring();
+                
+                // Play video (for audio) with retry mechanism
+                let playAttempts = 0;
+                const maxPlayAttempts = 3;
+                const attemptPlay = () => {
+                    const playPromise = videoElement.play();
+                    
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            document.querySelector('.status').textContent = 'Playing: ' + CONFIG.trackInfo.title;
+                            audioInitialized = true;
+                            audioPlaying = true;
+                            
+                            // Immediate silent sound to keep context active (Safari)
+                            if (isSafari || isIOS) {
+                                createSilentSound();
+                            }
+                            
+                            // Set up annotation timer when audio starts playing
+                            setupAnnotationTimer();
+                            
+                            // Update annotation with current track info
+                            updateAnnotationContent(CONFIG.trackInfo);
+                        }).catch(error => {
+                            console.error(`Audio playback failed (attempt ${playAttempts + 1}/${maxPlayAttempts}):`, error);
+                            
+                            // Retry a few times before giving up
+                            playAttempts++;
+                            if (playAttempts < maxPlayAttempts) {
+                                // Wait a bit and try again
+                                setTimeout(attemptPlay, 300);
+                            } else {
+                                // Try with user interaction
+                                document.querySelector('.status').textContent = 'Click again to connect';
+                                
+                                // Try a different approach with audio element as fallback
+                                tryFallbackAudio();
+                            }
+                        });
+                    }
+                };
+                
+                // Start the attempt process
+                attemptPlay();
+            } catch (error) {
+                console.error('Error initializing audio:', error);
+                document.querySelector('.status').textContent = 'Audio initialization error';
+                tryFallbackAudio();
+            }
+        }
+        
+        // This function has been moved and replaced with a more versatile version that supports both primary and fallback audio
+        
+        // Analyze audio data or generate demo data
+        function analyzeAudio() {
+            // If in demo mode, generate synthetic audio data
+            if (demoMode) {
+                // Update time counter at a slower pace for more mellow feel
+                demoData.time = (demoData.time + 0.5) % 10000; // Half speed for gentler transitions
+                
+                // Get current values from patterns using modulo to cycle through them
+                const bassIndex = Math.floor(demoData.time) % demoData.bassPattern.length;
+                const midIndex = Math.floor(demoData.time) % demoData.midPattern.length;
+                const highIndex = Math.floor(demoData.time) % demoData.highPattern.length;
+                const beatIndex = Math.floor(demoData.time) % demoData.beatPattern.length;
+                
+                // Get values from patterns with reduced intensity for mellower feel
+                const bass = demoData.bassPattern[bassIndex] * 0.7; // Reduce intensity
+                const mid = demoData.midPattern[midIndex] * 0.6;    // Reduce intensity
+                const high = demoData.highPattern[highIndex] * 0.5;  // Reduce intensity
+                const beat = demoData.beatPattern[beatIndex];
+                
+                // Calculate overall level with reduced intensity
+                const level = (bass * 0.4 + mid * 0.2 + high * 0.1) * 0.7;
+                
+                // Update the level visualization
+                document.querySelector('.level').style.width = `${level * 100}%`;
+                
+                return {
+                    bass: bass,
+                    mid: mid,
+                    high: high,
+                    beat: beat,
+                    level: level,
+                    energy: (bass + mid + high) / 4, // Further reduce energy level for mellower feel
+                    beatFactor: beat ? 0.6 : bass * 0.4 // More subtle beat factor
+                };
+            }
+            
+            // Normal audio analysis when not in demo mode
+            if (!audioInitialized) return { 
+                bass: 0, mid: 0, high: 0, 
+                beat: false, level: 0, 
+                energy: 0, beatFactor: calculateFallbackBeatFactor() 
+            };
+            
+            // Get frequency data
+            audioAnalyser.getByteFrequencyData(dataArray);
+            
+            // Calculate energy in different frequency bands
+            const nyquist = audioContext.sampleRate / 2;
+            const freqByIndex = i => i * nyquist / dataArray.length;
+            
+            let bassTotal = 0, bassCount = 0;
+            let midTotal = 0, midCount = 0;
+            let highTotal = 0, highCount = 0;
+            let overallTotal = 0;
+            
+            for (let i = 0; i < dataArray.length; i++) {
+                const value = dataArray[i] / 255; // Normalize to 0-1
+                const frequency = freqByIndex(i);
+                
+                overallTotal += value;
+                
+                if (frequency >= CONFIG.audioThresholds.bass[0] && frequency <= CONFIG.audioThresholds.bass[1]) {
+                    bassTotal += value;
+                    bassCount++;
+                } else if (frequency >= CONFIG.audioThresholds.mid[0] && frequency <= CONFIG.audioThresholds.mid[1]) {
+                    midTotal += value;
+                    midCount++;
+                } else if (frequency >= CONFIG.audioThresholds.high[0] && frequency <= CONFIG.audioThresholds.high[1]) {
+                    highTotal += value;
+                    highCount++;
+                }
+            }
+            
+            // Get averages
+            bassEnergy = bassCount ? bassTotal / bassCount : 0;
+            midEnergy = midCount ? midTotal / midCount : 0;
+            highEnergy = highCount ? highTotal / highCount : 0;
+            
+            // Calculate overall level with smoothing
+            const newLevel = overallTotal / dataArray.length;
+            audioLevel = newLevel;
+            smoothedLevel = smoothedLevel * 0.8 + newLevel * 0.2;
+            
+            // Beat detection
+            // Store historical levels for relative comparison
+            beatHistory.push(bassEnergy);
+            if (beatHistory.length > 20) beatHistory.shift();
+            
+            // Calculate average and standard deviation
+            const avg = beatHistory.reduce((a, b) => a + b, 0) / beatHistory.length;
+            const variance = beatHistory.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / beatHistory.length;
+            const threshold = avg + Math.sqrt(variance) * 0.8;
+            
+            // Detect beat when bass energy exceeds threshold
+            const currentBeat = bassEnergy > threshold && bassEnergy > 0.15;
+            
+            // Only trigger once per beat
+            let isBeat = false;
+            if (currentBeat && !beatDetected) {
+                beatDetected = true;
+                isBeat = true;
+            } else if (!currentBeat) {
+                beatDetected = false;
+            }
+            
+            // Calculate beat factor (how strong the beat is)
+            let beatFactor = 0;
+            if (isBeat) {
+                // New beat detected
+                beatFactor = 1;
+            } else {
+                // Decay current beat factor
+                beatFactor = Math.max(0, beatFactor - 0.1);
+            }
+            
+            // Update the level visualization
+            document.querySelector('.level').style.width = `${audioLevel * 100}%`;
+            
+            return {
+                bass: bassEnergy,
+                mid: midEnergy,
+                high: highEnergy,
+                beat: isBeat,
+                level: audioLevel,
+                energy: (bassEnergy + midEnergy + highEnergy) / 3,
+                beatFactor: isBeat ? 1 : Math.max(bassEnergy * 1.5, calculateFallbackBeatFactor() * 0.5)
+            };
+        }
+        
+        // Variables for touch gesture handling
+        let touchStartDistance = 0;
+        let isMultiTouch = false;
+        
+        // Handle touch start for pinch gesture
+        function handleTouchStart(event) {
+            if (event.touches.length === 2) {
+                event.preventDefault();
+                isMultiTouch = true;
+                
+                // Calculate distance between two touch points
+                const dx = event.touches[0].clientX - event.touches[1].clientX;
+                const dy = event.touches[0].clientY - event.touches[1].clientY;
+                touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+            } else if (event.touches.length === 1) {
+                // For single touches, first check if we're touching the audio button
+                const touch = event.touches[0];
+                const startAudioBtn = document.getElementById('startAudioBtn');
+                const interactionNote = document.getElementById('interactionNote');
+                
+                // If the audio button is visible and we touched it, don't process further
+                if (startAudioBtn.style.display !== 'none') {
+                    const audioRect = startAudioBtn.getBoundingClientRect();
+                    if (touch.clientX >= audioRect.left && touch.clientX <= audioRect.right &&
+                        touch.clientY >= audioRect.top && touch.clientY <= audioRect.bottom) {
+                        return; // Let the audio button's own handlers handle this
+                    }
+                    
+                    // Also check interaction note
+                    if (interactionNote.style.display !== 'none') {
+                        const noteRect = interactionNote.getBoundingClientRect();
+                        if (touch.clientX >= noteRect.left && touch.clientX <= noteRect.right &&
+                            touch.clientY >= noteRect.top && touch.clientY <= noteRect.bottom) {
+                            return; // Touched on the interaction note
+                        }
+                    }
+                }
+                
+                // Calculate touch position in normalized device coordinates
+                mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+                
+                // Update the raycaster
+                raycaster.setFromCamera(mouse, camera);
+                
+                // Check if we're touching the center object
+                const centerIntersects = raycaster.intersectObject(centerObject);
+                if (centerIntersects.length > 0) {
+                    // Prevent default to stop any further processing of this touch
+                    event.preventDefault();
+                }
+            }
+        }
+        
+        // Handle touch move for pinch gesture
+        function handleTouchMove(event) {
+            if (isMultiTouch && event.touches.length === 2) {
+                event.preventDefault();
+                
+                // Calculate new distance between touch points
+                const dx = event.touches[0].clientX - event.touches[1].clientX;
+                const dy = event.touches[0].clientY - event.touches[1].clientY;
+                const touchEndDistance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Calculate zoom based on the pinch gesture
+                const touchDelta = touchEndDistance - touchStartDistance;
+                const zoomSpeed = 0.01;
+                const delta = touchDelta * zoomSpeed;
+                
+                // Update camera zoom with constraints
+                cameraZoom = Math.max(2, Math.min(10, cameraZoom - delta));
+                
+                // Update start distance for next move event
+                touchStartDistance = touchEndDistance;
+            }
+        }
+        
+        // Handle touch end for pinch gesture and star clicks
+        function handleTouchEnd(event) {
+            isMultiTouch = false;
+            
+            // Only process single touches as clicks (not pinch/zoom gestures)
+            if (event.touches.length === 0 && !isMultiTouch) {
+                // Get the touch position
+                const touch = event.changedTouches[0];
+                const touchX = touch.clientX;
+                const touchY = touch.clientY;
+                
+                // Check if we're touching the audio button or interaction note
+                const startAudioBtn = document.getElementById('startAudioBtn');
+                const interactionNote = document.getElementById('interactionNote');
+                
+                // If the audio button is visible and we touched it, don't process as a star click
+                if (startAudioBtn.style.display !== 'none') {
+                    const audioRect = startAudioBtn.getBoundingClientRect();
+                    if (touchX >= audioRect.left && touchX <= audioRect.right &&
+                        touchY >= audioRect.top && touchY <= audioRect.bottom) {
+                        return; // Let the audio button's own handlers handle this
+                    }
+                    
+                    // Also check interaction note
+                    if (interactionNote.style.display !== 'none') {
+                        const noteRect = interactionNote.getBoundingClientRect();
+                        if (touchX >= noteRect.left && touchX <= noteRect.right &&
+                            touchY >= noteRect.top && touchY <= noteRect.bottom) {
+                            return; // Touched on the interaction note
+                        }
+                    }
+                }
+                
+                // Calculate touch position in normalized device coordinates
+                mouse.x = (touchX / window.innerWidth) * 2 - 1;
+                mouse.y = -(touchY / window.innerHeight) * 2 + 1;
+                
+                // Update the raycaster
+                raycaster.setFromCamera(mouse, camera);
+                
+                // Check if we're touching the center object
+                // Use intersectObjects with true as the second parameter to check for recursive intersections
+                // This ensures we detect touches on both the main mesh and its wireframe child
+                const centerIntersects = raycaster.intersectObjects([centerObject], true);
+                if (centerIntersects.length > 0) {
+                    // Touching the center object no longer shows annotations
+                    // This functionality has been moved to the ID avatar
+                    return; // Don't process further touch actions
+                }
+                
+                // Create a synthetic click event
+                const clickEvent = {
+                    clientX: touchX,
+                    clientY: touchY
+                };
+                
+                // Process as a star click
+                handleStarClick(clickEvent);
+            }
+        }
+        
+        // Handle star click for explosions
+        function handleStarClick(event) {
+            // Check if we're clicking on the audio button or interaction note
+            const startAudioBtn = document.getElementById('startAudioBtn');
+            const interactionNote = document.getElementById('interactionNote');
+            
+            // If the audio button is visible and we clicked on it, don't process as a star click
+            if (startAudioBtn.style.display !== 'none') {
+                const audioRect = startAudioBtn.getBoundingClientRect();
+                if (event.clientX >= audioRect.left && event.clientX <= audioRect.right &&
+                    event.clientY >= audioRect.top && event.clientY <= audioRect.bottom) {
+                    return; // Let the audio button's own click handler handle this
+                }
+                
+                // Also check interaction note
+                if (interactionNote.style.display !== 'none') {
+                    const noteRect = interactionNote.getBoundingClientRect();
+                    if (event.clientX >= noteRect.left && event.clientX <= noteRect.right &&
+                        event.clientY >= noteRect.top && event.clientY <= noteRect.bottom) {
+                        return; // Clicked on the interaction note
+                    }
+                }
+            }
+            
+            // Store the actual cursor position for points display
+            const cursorX = event.clientX;
+            const cursorY = event.clientY;
+            
+            // Calculate mouse position in normalized device coordinates (-1 to +1)
+            mouse.x = (cursorX / window.innerWidth) * 2 - 1;
+            mouse.y = -(cursorY / window.innerHeight) * 2 + 1;
+            
+            // Update the raycaster with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Check if click is on center object but don't show annotations
+            const centerIntersects = raycaster.intersectObjects([centerObject], true);
+            if (centerIntersects.length > 0) {
+                // Clicking center object no longer shows annotations
+                // Just handle as a regular click - don't return early
+            }
+            
+            // Check for intersections with stars
+            const intersects = raycaster.intersectObject(starField);
+            
+            if (intersects.length > 0) {
+                // Get the index of the clicked star
+                const index = intersects[0].index;
+                const i3 = index * 3;
+                
+                // Get star position and data
+                const positions = starField.geometry.attributes.position;
+                const starData = starField.userData.starData;
+                
+                // Only allow explosion if star is visible (in front of camera)
+                if (positions.array[i3 + 2] < 5 && positions.array[i3 + 2] > -50) {
+                    // Create explosion effect
+                    createStarExplosion(positions.array[i3], positions.array[i3 + 1], positions.array[i3 + 2]);
+                    
+                    // Calculate points based on star depth (closer stars = more points)
+                    const depthFactor = Math.min(1, Math.max(0, (positions.array[i3 + 2] + 50) / 55));
+                    const starPoints = Math.floor(CONFIG.starPointsBase * (1 + depthFactor * CONFIG.starPointsMultiplier));
+                    
+                    // Add points
+                    points += starPoints;
+                    updatePointsDisplay(starPoints, cursorX, cursorY);
+                    
+                    // Reset star position
+                    const depthLayer = starData[index].depthLayer;
+                    positions.array[i3] = (Math.random() - 0.5) * 40;
+                    positions.array[i3 + 1] = (Math.random() - 0.5) * 40;
+                    positions.array[i3 + 2] = depthLayer.min; // Reset to back of its layer
+                    
+                    // Update positions
+                    positions.needsUpdate = true;
+                }
+            }
+        }
+        
+        // Create star explosion effect
+        function createStarExplosion(x, y, z) {
+            // Create explosion particles
+            const explosion = {
+                particles: [],
+                position: new THREE.Vector3(x, y, z),
+                time: 0,
+                duration: CONFIG.starExplosionDuration
+            };
+            
+            // Create particles for the explosion
+            for (let i = 0; i < CONFIG.starExplosionParticles; i++) {
+                // Random direction for particle
+                const direction = new THREE.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2
+                ).normalize();
+                
+                // Random speed
+                const speed = CONFIG.starExplosionSpeed * (0.5 + Math.random());
+                
+                // Random color (yellow to red)
+                const color = new THREE.Color().setHSL(
+                    0.05 + Math.random() * 0.1, // Hue (yellow-orange-red range)
+                    0.8 + Math.random() * 0.2,  // Saturation
+                    0.6 + Math.random() * 0.4   // Lightness
+                );
+                
+                // Add particle to explosion
+                explosion.particles.push({
+                    position: new THREE.Vector3(x, y, z),
+                    velocity: direction.multiplyScalar(speed),
+                    color: color,
+                    size: 0.1 + Math.random() * 0.2
+                });
+            }
+            
+            // Add explosion to the list
+            starExplosions.push(explosion);
+        }
+        
+        // Function to show achievement notification
+        function showAchievementNotification() {
+            console.log("Achievement unlocked: 3000 points reached! Showing notification.");
+            
+            // Do NOT pause the game for notification, only for modal
+            // isPaused remains false here
+            
+            // Create notification if it doesn't exist
+            let notification = document.getElementById('achievement-notification');
+            
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'achievement-notification';
+                notification.className = 'achievement-notification';
+                notification.textContent = '🏆 ACHIEVEMENT UNLOCKED! Click to claim reward';
+                notification.onclick = function() {
+                    showBandcampCodesModal();
+                };
+                document.body.appendChild(notification);
+            }
+            
+            // Show the notification
+            notification.style.display = 'block';
+        }
+        
+        // Function to show Bandcamp redemption codes modal
+        function showBandcampCodesModal() {
+            
+            // Pause any animation or game elements if needed
+            isPaused = true;
+            
+            // Create overlay if it doesn't exist
+            let overlay = document.getElementById('modal-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'modal-overlay';
+                overlay.className = 'modal-overlay';
+                document.body.appendChild(overlay);
+            }
+            overlay.style.display = 'block';
+            
+            // Check if container already exists
+            let container = document.getElementById('bandcamp-codes-container');
+            
+            if (!container) {
+                // Create container for the codes
+                container = document.createElement('div');
+                container.id = 'bandcamp-codes-container';
+                container.className = 'bandcamp-codes-container';
+                
+                // Create header
+                const header = document.createElement('h2');
+                header.textContent = 'ACHIEVEMENT UNLOCKED: 3000 POINTS!';
+                container.appendChild(header);
+                
+                // Add description
+                const description = document.createElement('p');
+                description.textContent = 'You\'ve earned free download codes for the PLUSH120 release:';
+                container.appendChild(description);
+                
+                // Add instruction for the copy buttons
+                const clickInstruction = document.createElement('p');
+                clickInstruction.style.fontSize = '11px';
+                clickInstruction.style.marginTop = '5px';
+                clickInstruction.style.opacity = '0.8';
+                clickInstruction.style.fontStyle = 'italic';
+                clickInstruction.textContent = '(Use the COPY buttons to copy codes to clipboard)';
+                container.appendChild(clickInstruction);
+                
+                // Create codes list
+                const codesList = document.createElement('div');
+                codesList.className = 'bandcamp-codes-list';
+                
+                // Properly shuffle the codes and pick the top 3
+                // Fisher-Yates shuffle algorithm for better randomization
+                function shuffleArray(array) {
+                    const shuffled = [...array]; // Create a copy of the array
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap elements
+                    }
+                    return shuffled;
+                }
+                
+                // Get 3 random codes using proper shuffle
+                const shuffled = shuffleArray(bandcampCodes);
+                const selectedCodes = shuffled.slice(0, 3);
+                
+                // Function to copy text to clipboard
+                function copyTextToClipboard(text, button) {
+                    console.log('Attempting to copy text:', text);
+                    
+                    // First try the modern API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(function() {
+                            console.log('Clipboard API success: Text copied to clipboard');
+                            showCopyFeedback(button, true);
+                        }).catch(function(err) {
+                            console.warn('Clipboard API failed:', err);
+                            // Fall back to legacy method
+                            legacyCopyMethod(text, button);
+                        });
+                        return;
+                    }
+                    
+                    // If clipboard API not available, use legacy method
+                    legacyCopyMethod(text, button);
+                }
+                
+                // Legacy copy method using execCommand
+                function legacyCopyMethod(text, button) {
+                    // Create a temporary textarea element
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '0';
+                    textArea.style.top = '0';
+                    textArea.style.opacity = '0';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    let success = false;
+                    try {
+                        success = document.execCommand('copy');
+                        console.log('execCommand success:', success);
+                    } catch (err) {
+                        console.error('execCommand failed:', err);
+                    }
+                    
+                    document.body.removeChild(textArea);
+                    showCopyFeedback(button, success);
+                }
+                
+                // Show copy feedback on the button
+                function showCopyFeedback(button, success) {
+                    const originalText = button.textContent;
+                    
+                    if (success) {
+                        button.textContent = 'COPIED!';
+                        button.style.backgroundColor = '#22cc22';
+                    } else {
+                        button.textContent = 'FAILED';
+                        button.style.backgroundColor = '#cc2222';
+                    }
+                    
+                    // Reset button after delay
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.backgroundColor = '';
+                    }, 1500);
+                }
+                
+                // Add each code with a copy button
+                selectedCodes.forEach(code => {
+                    // Using an IIFE (Immediately Invoked Function Expression) to create proper closure
+                    // This ensures each button gets its own independent copy of the code variable
+                    (function(codeValue) {
+                        // Create a container for the code and button
+                        const codeContainer = document.createElement('div');
+                        codeContainer.className = 'code-container';
+                        
+                        // Create the code element
+                        const codeElement = document.createElement('div');
+                        codeElement.className = 'bandcamp-code';
+                        codeElement.textContent = codeValue;
+                        codeElement.setAttribute('data-code', codeValue); // Add data attribute for extra safety
+                        
+                        // Create the copy button
+                        const copyButton = document.createElement('button');
+                        copyButton.className = 'copy-button';
+                        copyButton.textContent = 'COPY';
+                        copyButton.setAttribute('data-code', codeValue); // Add data attribute for extra safety
+                        
+                        // Add click event with explicit code reference
+                        copyButton.addEventListener('click', function() {
+                            // Get code from the data attribute to ensure correctness
+                            const codeToUse = this.getAttribute('data-code');
+                            console.log('Copying specific code:', codeToUse);
+                            copyTextToClipboard(codeToUse, this);
+                        });
+                        
+                        // Add elements to container
+                        codeContainer.appendChild(codeElement);
+                        codeContainer.appendChild(copyButton);
+                        
+                        // Add container to the codes list
+                        codesList.appendChild(codeContainer);
+                    })(code); // Pass the current code value to the IIFE
+                });
+                
+                container.appendChild(codesList);
+                
+                // Add redemption link
+                const linkContainer = document.createElement('div');
+                const link = document.createElement('a');
+                link.href = 'https://plush.bandcamp.com/yum';
+                link.className = 'bandcamp-link';
+                link.textContent = 'REDEEM ON BANDCAMP';
+                link.target = '_blank';
+                linkContainer.appendChild(link);
+                container.appendChild(linkContainer);
+                
+                // Add close button
+                const closeButton = document.createElement('button');
+                closeButton.className = 'close-codes-btn';
+                closeButton.textContent = 'CONTINUE PLAYING';
+                closeButton.onclick = function() {
+                    container.style.display = 'none';
+                    document.getElementById('modal-overlay').style.display = 'none';
+                    // Don't unpause when closing modal - game should still run with notification showing
+                    isPaused = false;
+                };
+                container.appendChild(closeButton);
+                
+                // Add to body and ensure it's displayed
+                document.body.appendChild(container);
+                // Force a reflow and ensure display
+                setTimeout(() => {
+                    container.style.display = 'block';
+                }, 50); // Small delay to ensure DOM updates
+            } else {
+                // Show the container if it already exists
+                container.style.display = 'block';
+            }
+            
+            // Add a global click handler to ensure visibility
+            window.setTimeout(() => {
+                if (container) {
+                    container.style.display = 'block';
+                }
+            }, 100);
+        }
+        
+        // Update points display with animation
+        function updatePointsDisplay(newPoints, clickX, clickY) {
+            const pointsDisplay = document.getElementById('points-display');
+            pointsDisplay.textContent = points;
+            
+            // Check if points reached 3000 and codes haven't been shown yet
+            if (points >= 3000 && !codesShown) {
+                console.log("Achievement unlocked: 3000 points reached!");
+                codesShown = true;
+                showAchievementNotification(); // Show notification instead of modal directly
+            }
+            
+            // Add flash effect for new points
+            pointsDisplay.style.fontSize = '28px';
+            pointsDisplay.style.textShadow = '0 0 15px rgba(255, 204, 0, 1)';
+            
+            // Function to check if a position is too close to recent positions
+            function isTooCloseToRecentPositions(x, y) {
+                const MIN_DISTANCE = 40; // Minimum distance in pixels between points
+                
+                for (const pos of recentPointPositions) {
+                    const dx = pos.x - x;
+                    const dy = pos.y - y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < MIN_DISTANCE) {
+                        return true; // Too close to an existing point
+                    }
+                }
+                
+                return false; // Not too close to any existing point
+            }
+            
+            // Generate non-overlapping random offsets
+            let randomXOffset, randomYOffset;
+            let attempts = 0;
+            const MAX_ATTEMPTS = 10; // Maximum attempts to find non-overlapping position
+            
+            do {
+                // Generate random offsets
+                randomXOffset = Math.floor(Math.random() * 60) - 30; // Wider range: -30 to 30 pixels
+                randomYOffset = Math.floor(Math.random() * 40) - 20; // Wider range: -20 to 20 pixels
+                
+                // Increase randomness with each attempt to ensure we eventually find a spot
+                if (attempts > 5) {
+                    randomXOffset *= 1.5;
+                    randomYOffset *= 1.5;
+                }
+                
+                attempts++;
+            } while (
+                attempts < MAX_ATTEMPTS && 
+                clickX && clickY && 
+                isTooCloseToRecentPositions(clickX + randomXOffset, clickY - 30 + randomYOffset)
+            );
+            
+            // Show points earned at cursor position
+            const pointsEarned = document.createElement('div');
+            pointsEarned.className = 'points-earned';
+            pointsEarned.textContent = '+' + newPoints;
+            
+            let finalX, finalY, floatDistance;
+            
+            // If click coordinates are provided, position at cursor with random offset
+            // Otherwise position near the viewfinder
+            if (clickX && clickY) {
+                // Position just above cursor with random offset
+                finalX = clickX + randomXOffset;
+                finalY = clickY - 30 + randomYOffset; // ~30px above cursor with offset
+                
+                pointsEarned.style.left = finalX + 'px';
+                pointsEarned.style.top = finalY + 'px';
+                
+                // Generate random float distance (between 80 and 120 pixels)
+                floatDistance = Math.floor(Math.random() * 40) + 80;
+                
+                // Animate points earned
+                setTimeout(() => {
+                    pointsEarned.style.top = (clickY - floatDistance + randomYOffset) + 'px'; // Float upward with random distance
+                    pointsEarned.style.opacity = '0';
+                }, 100);
+                
+                // We'll store this position in the recentPointPositions array later
+            } else {
+                // Fallback position if no coordinates (for programmatic points)
+                const viewfinder = document.querySelector('.viewfinder-display');
+                const rect = viewfinder.getBoundingClientRect();
+                
+                finalX = rect.right + 10 + randomXOffset;
+                finalY = rect.top + randomYOffset;
+                
+                pointsEarned.style.left = finalX + 'px';
+                pointsEarned.style.top = finalY + 'px';
+                
+                // Generate random float distance (between 50 and 80 pixels)
+                floatDistance = Math.floor(Math.random() * 30) + 50;
+                
+                // Animate points earned
+                setTimeout(() => {
+                    pointsEarned.style.top = (rect.top - floatDistance + randomYOffset) + 'px'; // Float upward with random distance
+                    pointsEarned.style.opacity = '0';
+                }, 100);
+            }
+            
+            // Add random rotation for more dynamic animation
+            const randomRotation = Math.floor(Math.random() * 10) - 5; // Random rotation between -5 and 5 degrees
+            pointsEarned.style.transform = `rotate(${randomRotation}deg)`;
+            
+            pointsEarned.style.opacity = '1';
+            pointsEarned.style.transition = 'all 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            document.body.appendChild(pointsEarned); // Append to body instead of viewfinder
+            
+            // Store the position for tracking
+            const positionRecord = { x: finalX, y: finalY };
+            
+            // Add to recent positions to avoid overlaps
+            recentPointPositions.push(positionRecord);
+            
+            // Limit the number of stored positions
+            if (recentPointPositions.length > MAX_RECENT_POSITIONS) {
+                recentPointPositions.shift(); // Remove oldest position
+            }
+            
+            // Remove points earned element after animation
+            setTimeout(() => {
+                pointsEarned.remove();
+                
+                // Also remove this position from tracking after animation completes
+                const index = recentPointPositions.indexOf(positionRecord);
+                if (index !== -1) {
+                    recentPointPositions.splice(index, 1);
+                }
+            }, 2600);
+            
+            // Reset display after a short delay
+            setTimeout(() => {
+                pointsDisplay.style.fontSize = '24px';
+                pointsDisplay.style.textShadow = '0 0 10px rgba(255, 204, 0, 0.8)';
+            }, 300);
+            
+            // Update last points update time
+            lastPointsUpdate = clock.elapsedTime;
+        }
+        
+        // Handle mouse wheel for camera zoom
+        function handleMouseWheel(event) {
+            event.preventDefault();
+            
+            // Determine zoom direction and speed
+            const zoomSpeed = 0.2;
+            const delta = -Math.sign(event.deltaY) * zoomSpeed;
+            
+            // Update camera zoom with min/max constraints
+            cameraZoom = Math.max(2, Math.min(10, cameraZoom + delta));
+        }
+        
+        // Update camera with very slow tilting motion
+        function updateCamera(deltaTime) {
+            const time = clock.getElapsedTime();
+            
+            // Apply slow camera zoom cycle (60 second complete cycle)
+            // Calculate zoom based on a sine wave for smooth transitions
+            const zoomCycle = Math.sin((time / zoomCycleDuration) * Math.PI * 2);
+            // Map the -1 to 1 sine value to our zoom range
+            const cyclicZoom = cameraZoomMin + ((zoomCycle + 1) / 2) * (cameraZoomMax - cameraZoomMin);
+            
+            // Blend manual zoom with automatic cycle - weighting user's manual adjustments
+            const baseZoom = cameraZoom; // User's manual adjustment
+            const blendFactor = 0.4; // Weight of auto-zoom (lower = more responsive to manual input)
+            let actualZoom = (baseZoom * (1 - blendFactor)) + (cyclicZoom * blendFactor);
+            
+            // Add very subtle orbital motion (120 second full orbit)
+            const orbitSpeed = Math.PI * 2 / 120; // Complete orbit in 120 seconds (2 minutes)
+            let orbitRadius = 0.5; // Small radius for subtle effect
+            
+            // Modify camera behavior during warp drive
+            if (warpDriveActive) {
+                // During warp, exaggerate the zoom effect based on warp intensity
+                const warpZoomEffect = ultraWarpActive ? 0.7 : 0.3;
+                actualZoom -= warpDriveEffectIntensity * warpZoomEffect;
+                
+                // Increase orbital radius during warp
+                orbitRadius = ultraWarpActive ? 0.8 : 0.6;
+            }
+            
+            // Calculate orbital position
+            const orbitX = Math.sin(time * orbitSpeed) * orbitRadius;
+            const orbitY = Math.cos(time * orbitSpeed) * orbitRadius * 0.5; // Flatter ellipse
+            
+            // Apply camera position with zoom and orbital motion
+            camera.position.x = orbitX;
+            camera.position.y = orbitY;
+            camera.position.z = actualZoom;
+            
+            // Create a very slow tilting effect by shifting where the camera looks
+            // Rather than moving the camera itself, we'll adjust what it's looking at
+            
+            // For demo mode, use even slower and gentler camera movements
+            const tiltSpeed = demoMode ? 0.002 : 0.005; // Extra slow tilt speed for demo mode
+            
+            // Calculate tilted look target
+            // Start with the center object's position
+            let targetX, targetY, targetZ;
+            
+            if (warpDriveActive) {
+                // During warp drive, introduce subtle vibration/shaking
+                const warpShakeIntensity = 0.015 * warpDriveEffectIntensity;
+                targetX = centerObject.position.x + time * tiltSpeed * 0.02 + 
+                          Math.sin(time * 15) * warpShakeIntensity;
+                targetY = centerObject.position.y - time * tiltSpeed * 0.025 + 
+                          Math.cos(time * 20) * warpShakeIntensity;
+                targetZ = centerObject.position.z;
+            } else {
+                // Normal tilting behavior
+                targetX = centerObject.position.x + time * tiltSpeed * 0.02; // Slower rightward tilt
+                targetY = centerObject.position.y - time * tiltSpeed * 0.025; // Slower downward tilt
+                targetZ = centerObject.position.z;
+            }
+            
+            // Create a target Vector3 with subtle organic motion - even more subtle in demo mode
+            const movementFactor = demoMode ? 0.005 : 0.01; // Reduced movement factor for demo mode
+            const organicX = Math.sin(time * 0.008) * movementFactor;
+            const organicY = Math.cos(time * 0.006) * movementFactor;
+            const lookTarget = new THREE.Vector3(
+                targetX + organicX,
+                targetY + organicY,
+                targetZ
+            );
+            
+            // Make the camera look at this slowly moving target
+            camera.lookAt(lookTarget);
+            
+            // Warp drive additional FOV effect - increase FOV during warp
+            if (warpDriveActive || warpDriveEffectIntensity > 0) {
+                const baseFOV = 75; // Normal FOV
+                const warpFOV = 85;  // Regular warp FOV
+                const ultraFOV = 95; // Ultra warp FOV
+                
+                let targetFOV;
+                if (ultraWarpActive || ultraWarpEffectIntensity > 0) {
+                    // Interpolate between regular warp and ultra warp FOV
+                    const ultraFactor = Math.min(1, ultraWarpEffectIntensity);
+                    targetFOV = THREE.MathUtils.lerp(warpFOV, ultraFOV, ultraFactor);
+                } else {
+                    targetFOV = warpFOV;
+                }
+                
+                camera.fov = THREE.MathUtils.lerp(baseFOV, targetFOV, warpDriveEffectIntensity);
+                camera.updateProjectionMatrix();
+            }
+        }
+        
+        
+        // Create the star field with multiple depth layers
+        function createStars() {
+            const starGeometry = new THREE.BufferGeometry();
+            const starMaterial = new THREE.PointsMaterial({
+                size: 0.3,
+                sizeAttenuation: true,
+                color: 0xFFFFFF,
+                vertexColors: true
+            });
+            
+            // Create star positions and colors
+            const positions = [];
+            const colors = [];
+            const sizes = [];
+            const starData = [];
+            
+            // Define depth layers for parallax effect - dramatically increased speed factors for faster travel
+            const depthLayers = [
+                { min: -200, max: -150, count: Math.floor(CONFIG.starCount * 0.3), speedFactor: 0.5, sizeFactor: 0.3 },  // Very far background
+                { min: -150, max: -80, count: Math.floor(CONFIG.starCount * 0.3), speedFactor: 1.2, sizeFactor: 0.5 },  // Far background
+                { min: -80, max: -30, count: Math.floor(CONFIG.starCount * 0.2), speedFactor: 3.5, sizeFactor: 0.7 },   // Mid background
+                { min: -30, max: -1, count: Math.floor(CONFIG.starCount * 0.2), speedFactor: 8.0, sizeFactor: 0.9 }     // Foreground - extremely fast
+            ];
+            
+            // Create stars for each depth layer
+            depthLayers.forEach(layer => {
+                for (let i = 0; i < layer.count; i++) {
+                    // Random position in 3D space
+                    const x = (Math.random() - 0.5) * 20;
+                    const y = (Math.random() - 0.5) * 20;
+                    const z = layer.min + Math.random() * (layer.max - layer.min); // Z based on depth layer
+                    
+                    positions.push(x, y, z);
+                    
+                    // Adjust star color based on depth (distant stars more blue/faded, closer stars more bright)
+                    let r, g, b;
+                    
+                    if (layer.speedFactor <= 0.2) {
+                        // Distant stars (bluish, faded)
+                        r = 0.6 + Math.random() * 0.2;
+                        g = 0.7 + Math.random() * 0.2;
+                        b = 0.9 + Math.random() * 0.1;
+                    } else if (layer.speedFactor <= 0.5) {
+                        // Mid-distance stars (slightly purplish)
+                        r = 0.7 + Math.random() * 0.2;
+                        g = 0.7 + Math.random() * 0.2;
+                        b = 0.9 + Math.random() * 0.1;
+                    } else if (layer.speedFactor <= 1.0) {
+                        // Closer stars (white)
+                        r = 0.8 + Math.random() * 0.2;
+                        g = 0.8 + Math.random() * 0.2;
+                        b = 0.9 + Math.random() * 0.1;
+                    } else {
+                        // Foreground stars (slight yellow/white tint)
+                        r = 0.9 + Math.random() * 0.1;
+                        g = 0.9 + Math.random() * 0.1;
+                        b = 0.8 + Math.random() * 0.1;
+                    }
+                    
+                    colors.push(r, g, b);
+                    
+                    // Adjust star size based on depth layer
+                    const baseSize = 0.1 + Math.random() * 0.2;
+                    const adjustedSize = baseSize * layer.sizeFactor;
+                    sizes.push(adjustedSize);
+                    
+                    // Store additional star data for animations
+                    starData.push({
+                        twinkleSpeed: 0.5 + Math.random() * 2,
+                        twinkleOffset: Math.random() * Math.PI * 2,
+                        explosionChance: Math.random() * 0.0001 * layer.speedFactor, // More explosions in foreground
+                        originalSize: adjustedSize,
+                        depthSpeedFactor: layer.speedFactor,
+                        depthLayer: layer
+                    });
+                }
+            });
+            
+            // Add attributes to geometry
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            starGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+            
+            // Create the star field mesh
+            starField = new THREE.Points(starGeometry, starMaterial);
+            starField.userData.starData = starData;
+            scene.add(starField);
+        }
+        
+        // Create the center geometric object
+        function createCenterObject() {
+            // Use a more detailed geometry with more segments to emphasize lines
+            const geometry = new THREE.IcosahedronGeometry(0.5, 1); // Using icosahedron for more visible facets
+            
+            // Create primary material for the solid object
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xff2233, // Vibrant red color from album cover
+                emissive: 0xcc1122, // Deep red emissive glow
+                flatShading: true, // Enable flat shading to emphasize facets
+                shininess: 120
+            });
+            
+            // Create the main mesh
+            centerObject = new THREE.Mesh(geometry, material);
+            
+            // Create a wireframe mesh that overlays the main mesh
+            const wireframeMaterial = new THREE.LineBasicMaterial({ 
+                color: 0xffffff, // White lines
+                linewidth: 2, // Thicker lines (note: line width beyond 1 may not work in all browsers)
+                opacity: 0.8, // Slightly transparent
+                transparent: true
+            });
+            
+            // Create wireframe geometry from the original geometry
+            const wireframeGeometry = new THREE.WireframeGeometry(geometry);
+            const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+            
+            // Add wireframe as a child of the main mesh
+            centerObject.add(wireframe);
+            
+            // Position slightly forward to enhance the flying effect
+            centerObject.position.z = 1.5;
+            scene.add(centerObject);
+            
+            // Initialize the annotation's position
+            initializeAnnotation();
+            
+            // Add a light for the center object
+            const light = new THREE.PointLight(0xff2233, 1.8, 10); // Brighter light with exact red color
+            light.position.set(0, 0, 3); // Position further forward
+            scene.add(light);
+            
+            // Create multiple trail lights for enhanced trail effect
+            const trailLight1 = new THREE.PointLight(0xff2233, 1.2, 6);
+            trailLight1.position.set(0, 0, -1.5); // First trail light
+            scene.add(trailLight1);
+            
+            const trailLight2 = new THREE.PointLight(0xff3344, 0.8, 4);
+            trailLight2.position.set(0, 0, -3); // Second trail light
+            scene.add(trailLight2);
+            
+            const trailLight3 = new THREE.PointLight(0xff4455, 0.6, 3);
+            trailLight3.position.set(0, 0, -4.5); // Third trail light 
+            scene.add(trailLight3);
+            
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0x222222);
+            scene.add(ambientLight);
+        }
+        
+        // Update stars with depth-based parallax movement and audio reactivity
+        function updateStars(deltaTime, audioData) {
+            const positions = starField.geometry.attributes.position;
+            const sizes = starField.geometry.attributes.size;
+            const colors = starField.geometry.attributes.color;
+            const starData = starField.userData.starData;
+            
+            // Check cooldown status - if enough additional points have been earned
+            if (warpCooldown && (points - pointsAtDeactivation >= pointsNeededForReactivation)) {
+                warpCooldown = false;
+                
+                // Create notification for warp systems back online
+                const warpReactivation = document.createElement('div');
+                warpReactivation.className = 'warp-drive-notification';
+                warpReactivation.style.borderColor = 'rgba(0, 255, 128, 0.8)';
+                warpReactivation.style.color = '#ccffee';
+                warpReactivation.textContent = 'WARP SYSTEMS RECHARGED';
+                document.body.appendChild(warpReactivation);
+                
+                // Remove notification after animation completes
+                setTimeout(() => {
+                    warpReactivation.remove();
+                }, 3000);
+            }
+            
+            // Only check for warp activation if not on cooldown
+            if (!warpCooldown) {
+                // Check if ULTRA warp drive should be activated (higher points threshold)
+                if (points >= CONFIG.ultraWarpThreshold && !ultraWarpActive) {
+                ultraWarpActive = true;
+                warpDriveActive = true; // Regular warp is also active during ultra warp
+                ultraWarpActivatedTime = clock.elapsedTime;
+                warpDriveActivatedTime = clock.elapsedTime; // Reset regular warp timer too
+                lostPoints = 0; // Reset lost points counter
+                lastPointDeduction = clock.elapsedTime; // Reset deduction timer
+                
+                // Create notification element for ULTRA warp drive activation
+                const ultraWarpNotification = document.createElement('div');
+                ultraWarpNotification.className = 'ultra-warp-notification';
+                ultraWarpNotification.textContent = 'ULTRA WARP DRIVE ACTIVATED';
+                document.body.appendChild(ultraWarpNotification);
+                
+                // Remove notification after animation completes
+                setTimeout(() => {
+                    ultraWarpNotification.remove();
+                    
+                    // Create the ultra warp indicator
+                    const ultraWarpIndicator = document.createElement('div');
+                    ultraWarpIndicator.className = 'ultra-warp-indicator';
+                    ultraWarpIndicator.textContent = 'ULTRA WARP';
+                    ultraWarpIndicator.id = 'ultra-warp-indicator';
+                    document.body.appendChild(ultraWarpIndicator);
+                    document.getElementById('ultra-warp-indicator').style.display = 'block';
+                }, 3000);
+            }
+            // Check if regular warp drive should be activated (lower points threshold) 
+            else if (points >= CONFIG.warpDriveThreshold && !warpDriveActive) {
+                warpDriveActive = true;
+                warpDriveActivatedTime = clock.elapsedTime;
+                lostPoints = 0; // Reset lost points counter when warp drive activates
+                lastPointDeduction = clock.elapsedTime; // Reset deduction timer
+                
+                // Create notification element for warp drive activation
+                const warpNotification = document.createElement('div');
+                warpNotification.className = 'warp-drive-notification';
+                warpNotification.textContent = 'WARP DRIVE ACTIVATED';
+                document.body.appendChild(warpNotification);
+                
+                // Remove notification after animation completes
+                setTimeout(() => {
+                    warpNotification.remove();
+                }, 3000);
+                }
+            }
+            
+            // Handle point deduction and warp drive deactivation if needed
+            if (warpDriveActive) {
+                // Check if it's time to deduct points (every 3 seconds)
+                if (clock.elapsedTime - lastPointDeduction >= pointDeductionInterval) {
+                    // Determine point deduction amount (higher for ultrawarp)
+                    const deductionAmount = ultraWarpActive ? ultraPointDeductionAmount : pointDeductionAmount;
+                    
+                    // Deduct points
+                    points = Math.max(0, points - deductionAmount);
+                    lostPoints += deductionAmount; // Track how many points have been lost
+                    lastPointDeduction = clock.elapsedTime; // Reset the timer
+                    
+                    // Update the points display with a negative value
+                    const pointsDisplay = document.getElementById('points-display');
+                    if (pointsDisplay) {
+                        pointsDisplay.textContent = points;
+                        
+                        // Create a negative points notification
+                        const pointsLost = document.createElement('div');
+                        pointsLost.className = 'points-earned';
+                        pointsLost.style.color = ultraWarpActive ? '#33ccff' : '#ff5555'; // Different color for ultrawarp
+                        pointsLost.textContent = '-' + deductionAmount;
+                        
+                        // Position in the center-top of the screen
+                        pointsLost.style.left = '50%';
+                        pointsLost.style.top = '10%';
+                        pointsLost.style.transform = 'translateX(-50%)';
+                        
+                        // Animate
+                        pointsLost.style.opacity = '1';
+                        pointsLost.style.transition = 'all 2s ease-out';
+                        document.body.appendChild(pointsLost);
+                        
+                        // Remove after animation
+                        setTimeout(() => {
+                            pointsLost.style.opacity = '0';
+                            pointsLost.style.top = '5%';
+                            setTimeout(() => pointsLost.remove(), 1000);
+                        }, 1000);
+                    }
+                    
+                    // Calculate current fuel percentage
+                    const remainingFuelPercentage = 1 - (lostPoints / maxLostPoints);
+                    
+                    // Check if fuel is at critical level - step down one warp level
+                    if (remainingFuelPercentage <= criticalFuelPercentage) {
+                        // When fuel is critical, deactivate warp completely
+                        if (ultraWarpActive) {
+                            // Completely deactivate all warp modes
+                            ultraWarpActive = false;
+                            warpDriveActive = false;
+                            
+                            // Enable cooldown mode to prevent immediate reactivation
+                            warpCooldown = true;
+                            pointsAtDeactivation = points;
+                            
+                            // Remove the ultra warp indicator
+                            const indicator = document.getElementById('ultra-warp-indicator');
+                            if (indicator) indicator.remove();
+                            
+                            // Create notification for complete deactivation
+                            const ultraDeactivation = document.createElement('div');
+                            ultraDeactivation.className = 'ultra-warp-notification';
+                            ultraDeactivation.style.borderColor = 'rgba(255, 100, 0, 0.8)';
+                            ultraDeactivation.style.color = '#ffddaa';
+                            ultraDeactivation.textContent = 'ULTRA WARP DISENGAGED: NEED +' + pointsNeededForReactivation + ' POINTS';
+                            document.body.appendChild(ultraDeactivation);
+                            
+                            // Remove notification after animation completes
+                            setTimeout(() => {
+                                ultraDeactivation.remove();
+                            }, 3000);
+                            
+                            // Reset fuel level for future use
+                            lostPoints = 0;
+                        } else {
+                            // Regular warp needs to shut down
+                            warpDriveActive = false;
+                            
+                            // Enable cooldown mode to prevent immediate reactivation
+                            warpCooldown = true;
+                            pointsAtDeactivation = points;
+                            
+                            // Create notification for fuel depletion
+                            const fuelDepletion = document.createElement('div');
+                            fuelDepletion.className = 'warp-drive-notification';
+                            fuelDepletion.style.borderColor = 'rgba(255, 128, 0, 0.8)';
+                            fuelDepletion.style.color = '#ffeecc';
+                            fuelDepletion.textContent = 'WARP FUEL DEPLETED: NEED +' + pointsNeededForReactivation + ' POINTS';
+                            document.body.appendChild(fuelDepletion);
+                            
+                            // Reset fuel level for future use
+                            lostPoints = 0;
+                            
+                            // Remove notification after animation completes
+                            setTimeout(() => {
+                                fuelDepletion.remove();
+                            }, 3000);
+                        }
+                    }
+                    // Check if we've lost too many points - deactivate warp drives
+                    else if (lostPoints >= maxLostPoints) {
+                        // Check if ultra warp is active
+                        if (ultraWarpActive) {
+                            // Completely deactivate all warp modes
+                            ultraWarpActive = false;
+                            warpDriveActive = false;
+                            
+                            // Enable cooldown mode to prevent immediate reactivation
+                            warpCooldown = true;
+                            pointsAtDeactivation = points;
+                            
+                            // Remove the ultra warp indicator
+                            const indicator = document.getElementById('ultra-warp-indicator');
+                            if (indicator) indicator.remove();
+                            
+                            // Create notification for ultra warp deactivation
+                            const ultraDeactivation = document.createElement('div');
+                            ultraDeactivation.className = 'ultra-warp-notification';
+                            ultraDeactivation.style.borderColor = 'rgba(100, 150, 255, 0.8)';
+                            ultraDeactivation.style.color = '#ccddff';
+                            ultraDeactivation.textContent = 'WARP SYSTEMS OFFLINE: NEED +' + pointsNeededForReactivation + ' POINTS';
+                            document.body.appendChild(ultraDeactivation);
+                            
+                            // Remove notification after animation completes
+                            setTimeout(() => {
+                                ultraDeactivation.remove();
+                            }, 3000);
+                            
+                            // Reset fuel counter for future use
+                            lostPoints = 0;
+                        } else {
+                            // Regular warp drive deactivation
+                            warpDriveActive = false;
+                            
+                            // Create notification for warp drive deactivation
+                            const warpDeactivation = document.createElement('div');
+                            warpDeactivation.className = 'warp-drive-notification';
+                            warpDeactivation.style.borderColor = 'rgba(255, 100, 100, 0.8)';
+                            warpDeactivation.style.color = '#ffcccc';
+                            warpDeactivation.textContent = 'WARP DRIVE OFFLINE';
+                            document.body.appendChild(warpDeactivation);
+                            
+                            // Remove notification after animation completes
+                            setTimeout(() => {
+                                warpDeactivation.remove();
+                            }, 3000);
+                        }
+                    }
+                }
+            }
+            
+            // Calculate warp drive effect intensity (smooth transition over 2 seconds)
+            if (warpDriveActive) {
+                const timeSinceActivation = clock.elapsedTime - warpDriveActivatedTime;
+                warpDriveEffectIntensity = Math.min(1, timeSinceActivation / 2);
+            }
+            
+            // Adjust speed factor based on mode and warp drive status
+            // This creates a more mellow, dreamy starfield effect in demo mode
+            let baseFactor = demoMode ? 0.8 : 2.5; // Reduced speed in demo mode for mellower feel
+            
+            // Apply warp drive speed boost when active
+            if (warpDriveActive) {
+                baseFactor = baseFactor * (1 + (CONFIG.warpDriveSpeed - 1) * warpDriveEffectIntensity);
+            }
+            
+            for (let i = 0; i < starData.length; i++) {
+                const i3 = i * 3;
+                
+                // Get current position for depth check
+                const z = positions.array[i3 + 2];
+                
+                // Apply speed based on depth layer and mode
+                // In demo mode, we reduce the speed for a more ambient, mellow experience
+                const modeSpeedMultiplier = demoMode ? 0.4 : 1.0; // 60% slower in demo mode
+                const movementSpeed = CONFIG.starSpeed * starData[i].depthSpeedFactor * baseFactor * modeSpeedMultiplier;
+                positions.array[i3 + 2] += movementSpeed * deltaTime;
+                
+                // Reset star position when it passes camera
+                const depthLayer = starData[i].depthLayer;
+                if (positions.array[i3 + 2] > 5) {
+                    // Use a narrower range for x and y as distance increases for a tunnel-like effect
+                    // This creates a perspective where stars appear to come from a central point in the distance
+                    const distanceFactor = 1 + Math.abs(depthLayer.min) / 50; // Larger value for more distant stars
+                    positions.array[i3] = (Math.random() - 0.5) * 40 / distanceFactor;
+                    positions.array[i3 + 1] = (Math.random() - 0.5) * 40 / distanceFactor;
+                    positions.array[i3 + 2] = depthLayer.min; // Reset to back of its layer
+                    
+                    // Reset star data
+                    starData[i].twinkleOffset = Math.random() * Math.PI * 2;
+                }
+                
+                // Twinkle effect with audio reactivity
+                const twinkleFactor = Math.max(0.3, Math.min(1, starData[i].depthSpeedFactor));
+                const twinkle = Math.sin(clock.elapsedTime * starData[i].twinkleSpeed + starData[i].twinkleOffset);
+                const twinkleAmount = 0.2 * (0.5 + 0.5 * twinkle) * twinkleFactor;
+                
+                // Apply audio influence to twinkling (more influence on closer stars)
+                // Use high frequencies for twinkling
+                const audioInfluence = 0.3 * audioData.high * starData[i].depthSpeedFactor;
+                const beatInfluence = 0.2 * audioData.beatFactor * starData[i].depthSpeedFactor;
+                const totalTwinkle = twinkleAmount + audioInfluence + beatInfluence;
+                
+                // Update size with twinkle and audio
+                // During warp drive, stretch stars based on depth (further stars stretch more)
+                if (warpDriveActive) {
+                    // Calculate stretch effect based on depth and direction
+                    // Stars at different depths will stretch differently
+                    const depthStretchFactor = 1 + (0.5 + 0.5 * Math.cos(Math.abs(depthLayer.min) * 0.1)) * 
+                                                  CONFIG.warpDriveStretch * warpDriveEffectIntensity;
+                    
+                    // Horizontal stretching based on x position (further from center = more stretch)
+                    const xFromCenter = Math.abs(positions.array[i3]) / 20; // Normalized distance from center (0-1)
+                    const yFromCenter = Math.abs(positions.array[i3 + 1]) / 20;
+                    const distanceFromCenter = Math.sqrt(xFromCenter * xFromCenter + yFromCenter * yFromCenter);
+                    
+                    // Apply stretch effect primarily to stars that are further from center
+                    const centerEffect = 0.5 + 0.5 * distanceFromCenter; // 0.5-1.0 range
+                    const stretchFactor = 1 + (depthStretchFactor - 1) * centerEffect;
+                    
+                    // Apply bigger size to stretched stars, accounting for distance from center
+                    sizes.array[i] = starData[i].originalSize * 
+                                    (1 + totalTwinkle) * 
+                                    (1 + 2 * warpDriveEffectIntensity * centerEffect);
+                } else {
+                    sizes.array[i] = starData[i].originalSize * (1 + totalTwinkle);
+                }
+                
+                // Star explosions based on audio beats
+                const baseExplosionChance = CONFIG.explosionFrequency * starData[i].depthSpeedFactor;
+                // Increase explosion chance during beats
+                const explosionChance = baseExplosionChance * (1 + audioData.beatFactor * 5);
+                
+                if (Math.random() < explosionChance * deltaTime || 
+                    (audioData.beat && Math.random() < starData[i].depthSpeedFactor * 0.1)) {
+                    // More dramatic explosions for closer stars and louder audio
+                    const explosionSize = 3 + 2 * starData[i].depthSpeedFactor * (1 + audioData.level);
+                    sizes.array[i] = starData[i].originalSize * explosionSize;
+                    
+                    // Explosion color based on frequency energy
+                    // Use mid frequencies for color shift
+                    const colorShift = Math.min(1, audioData.mid * 1.5);
+                    
+                    if (starData[i].depthSpeedFactor <= 0.2) {
+                        // Distant explosion (blue-ish)
+                        colors.array[i3] = 0.6 + colorShift * 0.2;
+                        colors.array[i3 + 1] = 0.7;
+                        colors.array[i3 + 2] = 1.0;
+                    } else if (starData[i].depthSpeedFactor <= 0.5) {
+                        // Mid-distance explosion (purple-ish)
+                        colors.array[i3] = 0.8 + colorShift * 0.2;
+                        colors.array[i3 + 1] = 0.7 - colorShift * 0.2;
+                        colors.array[i3 + 2] = 1.0;
+                    } else if (starData[i].depthSpeedFactor <= 1.0) {
+                        // Closer explosion (white)
+                        colors.array[i3] = 1.0;
+                        colors.array[i3 + 1] = 1.0;
+                        colors.array[i3 + 2] = 1.0;
+                    } else {
+                        // Foreground explosion (yellow/white tint)
+                        colors.array[i3] = 1.0;
+                        colors.array[i3 + 1] = 1.0;
+                        colors.array[i3 + 2] = 0.8 - colorShift * 0.3;
+                    }
+                } else {
+                    // Gradually return to original color based on depth layer
+                    if (starData[i].depthSpeedFactor <= 0.2) {
+                        // Distant stars (bluish)
+                        colors.array[i3] = 0.6 + 0.2 * Math.random();
+                        colors.array[i3 + 1] = 0.7 + 0.2 * Math.random();
+                        colors.array[i3 + 2] = 0.9 + 0.1 * Math.random();
+                    } else if (starData[i].depthSpeedFactor <= 0.5) {
+                        // Mid-distance stars (slightly purplish)
+                        colors.array[i3] = 0.7 + 0.2 * Math.random();
+                        colors.array[i3 + 1] = 0.7 + 0.2 * Math.random();
+                        colors.array[i3 + 2] = 0.9 + 0.1 * Math.random();
+                    } else if (starData[i].depthSpeedFactor <= 1.0) {
+                        // Closer stars (white)
+                        colors.array[i3] = 0.8 + 0.2 * Math.random();
+                        colors.array[i3 + 1] = 0.8 + 0.2 * Math.random();
+                        colors.array[i3 + 2] = 0.9 + 0.1 * Math.random();
+                    } else {
+                        // Foreground stars (slight yellow/white tint)
+                        colors.array[i3] = 0.9 + 0.1 * Math.random();
+                        colors.array[i3 + 1] = 0.9 + 0.1 * Math.random();
+                        colors.array[i3 + 2] = 0.8 + 0.1 * Math.random();
+                    }
+                }
+            }
+            
+            positions.needsUpdate = true;
+            sizes.needsUpdate = true;
+            colors.needsUpdate = true;
+        }
+        
+        // Update the center object with audio reactivity
+        function updateCenterObject(deltaTime, audioData) {
+            // Make the center object pulse more dramatically during warp drive
+            if (warpDriveActive) {
+                // Apply a color shift to the center object during warp drive
+                const pinkColor = new THREE.Color(0xff80ff);
+                const purpleColor = new THREE.Color(0xaa40ff);
+                const blueColor = new THREE.Color(0x4080ff);
+                
+                // Oscillate between colors during warp
+                const colorT = (Math.sin(clock.elapsedTime * 5) * 0.5 + 0.5) * warpDriveEffectIntensity;
+                let targetColor;
+                
+                if (colorT < 0.33) {
+                    targetColor = pinkColor.clone().lerp(purpleColor, colorT * 3);
+                } else if (colorT < 0.66) {
+                    targetColor = purpleColor.clone().lerp(blueColor, (colorT - 0.33) * 3);
+                } else {
+                    targetColor = blueColor.clone().lerp(pinkColor, (colorT - 0.66) * 3);
+                }
+                
+                // Apply the color to the center object material
+                centerObject.material.color.lerp(targetColor, deltaTime * 5);
+            }
+            
+            // Rotation speed affected by mid-range frequencies
+            // Increase rotation during warp drive
+            let warpMultiplier = warpDriveActive ? (1 + warpDriveEffectIntensity) : 1;
+            const rotSpeedX = 0.08 * (1 + audioData.mid * CONFIG.audioReactivity * 2) * warpMultiplier;
+            const rotSpeedY = 0.12 * (1 + audioData.mid * CONFIG.audioReactivity * 2) * warpMultiplier;
+            const rotSpeedZ = 0.05 * (1 + audioData.mid * CONFIG.audioReactivity * 2) * warpMultiplier;
+            
+            centerObject.rotation.x += rotSpeedX * deltaTime;
+            centerObject.rotation.y += rotSpeedY * deltaTime;
+            centerObject.rotation.z += rotSpeedZ * deltaTime;
+            
+            // More dynamic floating motion for flying effect
+            const time = clock.getElapsedTime();
+            // Reduced Z movement to keep position more stable for flying effect
+            // Increased X/Y movement for more dynamic flying pattern
+            const floatY = Math.sin(time * 0.7) * 0.25;
+            const floatX = Math.sin(time * 0.5) * 0.18;
+            const floatZ = 1.5 + Math.cos(time * 0.3) * 0.05; // Keep fairly stable on Z to maintain flying forward
+            
+            // Add audio reactivity to position (bass frequencies move the object)
+            const audioFloatY = audioData.bass * 0.2 * CONFIG.audioReactivity;
+            const audioFloatX = audioData.bass * 0.1 * CONFIG.audioReactivity;
+            const audioFloatZ = audioData.bass * 0.15 * CONFIG.audioReactivity;
+            
+            centerObject.position.set(
+                floatX + audioFloatX, 
+                floatY + audioFloatY, 
+                floatZ + audioFloatZ
+            );
+            
+            // Pulse size based on audio
+            // Base slow pulse
+            const slowPulse = Math.sin(time * 0.1) * 0.5 + 0.5;
+            const mediumPulse = Math.sin(time * 0.2) * 0.3 + 0.5;
+            const combinedPulse = 0.7 * slowPulse + 0.3 * mediumPulse;
+            
+            // Add audio influence - use bass and beat for pulsing
+            const audioPulse = audioData.bass * 0.5 + audioData.beatFactor * 0.5;
+            const pulseSize = 1 + (CONFIG.objectPulseAmount * 0.5 * combinedPulse) + 
+                            (CONFIG.objectPulseAmount * CONFIG.audioReactivity * audioPulse);
+            
+            // Apply non-uniform scaling for more organic feel - exaggerate on audio beat
+            const beatFactor = audioData.beatFactor * CONFIG.audioReactivity;
+            const xScale = pulseSize * (1 + Math.sin(time * 0.19) * 0.05 + beatFactor * 0.1);
+            const yScale = pulseSize * (1 + Math.sin(time * 0.23) * 0.05 + beatFactor * 0.2);
+            const zScale = pulseSize * (1 + Math.sin(time * 0.17) * 0.05 + beatFactor * 0.15);
+            centerObject.scale.set(xScale, yScale, zScale);
+            
+            // Color shifts based on audio frequencies
+            const material = centerObject.material;
+            
+            // Base color cycle that shifts between cool tones
+            const hue = (Math.sin(time * 0.05) * 0.1 + 0.6) % 1; // Blue spectrum
+            const saturation = 0.7 + Math.sin(time * 0.065) * 0.3;
+            const lightness = 0.5 + Math.sin(time * 0.035) * 0.2;
+            
+            // Audio influence on color
+            // Bass affects hue, mid affects saturation, high affects lightness
+            const hueShift = audioData.bass * 0.2 * CONFIG.audioReactivity;
+            const satShift = audioData.mid * 0.3 * CONFIG.audioReactivity;
+            const lightShift = audioData.high * 0.2 * CONFIG.audioReactivity;
+            
+            // Create HSL color with audio influence
+            const baseColor = new THREE.Color().setHSL(
+                (hue + hueShift) % 1, 
+                Math.min(1, saturation + satShift), 
+                Math.min(1, lightness + lightShift)
+            );
+            
+            // Create accent color - shift further during beats
+            const accentHue = (hue + 0.1 + hueShift + audioData.beatFactor * 0.1) % 1;
+            const accentColor = new THREE.Color().setHSL(
+                accentHue,
+                Math.min(1, saturation + satShift + 0.1),
+                Math.min(1, lightness + lightShift + 0.2)
+            );
+            
+            // Mix colors based on beat
+            const beatInfluence = audioData.beatFactor * 0.5 + combinedPulse * 0.2;
+            const finalColor = baseColor.clone().lerp(accentColor, beatInfluence);
+            
+            material.color.copy(finalColor);
+            material.emissive.copy(finalColor).multiplyScalar(0.4 + audioData.level * 0.6);
+        }
+        
+        // Calculate fallback beat factor (when no audio)
+        function calculateFallbackBeatFactor() {
+            const elapsed = clock.getElapsedTime();
+            const beatTime = elapsed % BEAT_INTERVAL;
+            const beatProgress = beatTime / BEAT_INTERVAL;
+            
+            // Smoother attack and decay for hypnotic feel
+            const sineInfluence = Math.sin(beatProgress * Math.PI) * 0.5 + 0.5;
+            const expDecay = Math.max(0, 1 - Math.pow(beatProgress * 2.5, 1.8));
+            
+            // Blend between sine and exponential for a more organic feel
+            return expDecay * 0.7 + sineInfluence * 0.3;
+        }
+        
+        // Create particle system for star debris effect
+        function createParticleSystem() {
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleMaterial = new THREE.PointsMaterial({ 
+                color: 0xFFFFFF,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.8,
+                vertexColors: true
+            });
+            
+            // Initialize arrays for particle attributes
+            const positions = new Float32Array(CONFIG.particleCount * 3);
+            const colors = new Float32Array(CONFIG.particleCount * 3);
+            
+            // Initialize particle data
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                const i3 = i * 3;
+                
+                // Initially position particles off-screen
+                positions[i3] = 0;
+                positions[i3 + 1] = 0;
+                positions[i3 + 2] = 1000; // Far away (inactive)
+                
+                // Assign default white color
+                colors[i3] = 1.0;
+                colors[i3 + 1] = 1.0;
+                colors[i3 + 2] = 1.0;
+                
+                // Store additional particle data
+                particleData.push({
+                    active: false,
+                    velocity: new THREE.Vector3(),
+                    life: 0,
+                    maxLife: 0
+                });
+            }
+            
+            // Set buffer attributes
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            // Create the particle system
+            particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particleSystem);
+        }
+        
+        // Update particle system
+        function updateParticleSystem(deltaTime, audioData) {
+            const positions = particleSystem.geometry.attributes.position;
+            const colors = particleSystem.geometry.attributes.color;
+            
+            // Activate new particles based on audio reactivity and random chance
+            const activationChance = 0.04 * (1 + audioData.beat * 2); 
+            
+            // Process active particles
+            for (let i = 0; i < particleData.length; i++) {
+                const i3 = i * 3;
+                const particle = particleData[i];
+                
+                if (particle.active) {
+                    // Update position based on velocity
+                    positions.array[i3] += particle.velocity.x * deltaTime;
+                    positions.array[i3 + 1] += particle.velocity.y * deltaTime;
+                    positions.array[i3 + 2] += particle.velocity.z * deltaTime;
+                    
+                    // Update life
+                    particle.life -= deltaTime;
+                    
+                    // Fade out based on remaining life
+                    const alpha = particle.life / particle.maxLife;
+                    colors.array[i3 + 2] = alpha; // Fade to blue as they age
+                    
+                    // Deactivate if life is over
+                    if (particle.life <= 0) {
+                        particle.active = false;
+                        positions.array[i3 + 2] = 1000; // Move off-screen
+                    }
+                } else if (Math.random() < activationChance * deltaTime) {
+                    // Try to activate a new particle
+                    // Find a suitable star to break off from
+                    const starPositions = starField.geometry.attributes.position;
+                    const starColors = starField.geometry.attributes.color;
+                    const starData = starField.userData.starData;
+                    
+                    // Randomly select a star
+                    const starIndex = Math.floor(Math.random() * starData.length);
+                    const starI3 = starIndex * 3;
+                    
+                    // Only create particles for stars that are close enough to be visible
+                    const starZ = starPositions.array[starI3 + 2];
+                    if (starZ > -50 && starZ < 3) { // Only mid-range to close stars
+                        // Activate particle
+                        particle.active = true;
+                        
+                        // Position slightly offset from the star
+                        positions.array[i3] = starPositions.array[starI3] + (Math.random() - 0.5) * 0.2;
+                        positions.array[i3 + 1] = starPositions.array[starI3 + 1] + (Math.random() - 0.5) * 0.2;
+                        positions.array[i3 + 2] = starPositions.array[starI3 + 2];
+                        
+                        // Copy star color for the particle
+                        colors.array[i3] = starColors.array[starI3];
+                        colors.array[i3 + 1] = starColors.array[starI3 + 1];
+                        colors.array[i3 + 2] = starColors.array[starI3 + 2];
+                        
+                        // Set velocity - drift away from the star with some randomness
+                        const driftSpeed = 0.5 + Math.random() * 1.5;
+                        particle.velocity.set(
+                            (Math.random() - 0.5) * driftSpeed,
+                            (Math.random() - 0.5) * driftSpeed,
+                            2 + Math.random() * 3 // Main direction is toward camera
+                        );
+                        
+                        // Set life span
+                        particle.maxLife = 0.5 + Math.random() * 1.0;
+                        particle.life = particle.maxLife;
+                    }
+                }
+            }
+            
+            // Update the geometry attributes
+            positions.needsUpdate = true;
+            colors.needsUpdate = true;
+        }
+        
+        // Advanced Safari audio fix with heartbeat and continuous monitoring
+        let audioContextMonitoringInterval = null;
+        let audioHeartbeatInterval = null;
+        let silentAudioNode = null;
+        
+        // Detect Safari browser
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        function startAudioContextMonitoring() {
+            // Clear any existing intervals
+            if (audioContextMonitoringInterval) {
+                clearInterval(audioContextMonitoringInterval);
+            }
+            
+            if (audioHeartbeatInterval) {
+                clearInterval(audioHeartbeatInterval);
+            }
+            
+            // More frequent checks for Safari
+            const checkInterval = (isSafari || isIOS) ? 100 : 500;
+            
+            // Check and resume audio context more frequently
+            audioContextMonitoringInterval = setInterval(() => {
+                if (!audioContext) return;
+                
+                if (audioContext.state === 'suspended') {
+                    console.log('Resuming suspended audio context');
+                    audioContext.resume().then(() => {
+                        console.log('AudioContext resumed successfully');
+                        
+                        // Force user interaction on Safari
+                        if ((isSafari || isIOS) && audioPlaying) {
+                            // Create and play a brief silent sound to keep audio active
+                            createSilentSound();
+                        }
+                    }).catch(err => {
+                        console.error('Failed to resume audio context:', err);
+                    });
+                }
+                
+                // Also ensure video is playing if it has been paused
+                if (videoElement && videoElement.paused && audioPlaying) {
+                    console.log('Resuming paused video element');
+                    videoElement.play().catch(err => {
+                        console.error('Failed to resume video playback:', err);
+                    });
+                }
+            }, checkInterval);
+            
+            // For Safari, implement additional heartbeat to keep audio active
+            if (isSafari || isIOS) {
+                // Create a heartbeat system that plays silent audio periodically
+                audioHeartbeatInterval = setInterval(() => {
+                    if (audioContext && audioContext.state === 'running' && audioPlaying) {
+                        createSilentSound();
+                    }
+                }, 2000); // Every 2 seconds
+            }
+        }
+        
+        // Create a brief silent sound to keep the audio context active
+        function createSilentSound() {
+            try {
+                if (!audioContext || audioContext.state !== 'running') return;
+                
+                // Clean up previous node if it exists
+                if (silentAudioNode) {
+                    silentAudioNode.stop();
+                    silentAudioNode.disconnect();
+                }
+                
+                // Create silent oscillator
+                silentAudioNode = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                // Set volume to near-zero (completely silent causes issues)
+                gainNode.gain.value = 0.001;
+                
+                // Connect and start
+                silentAudioNode.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Start and schedule stop
+                silentAudioNode.start();
+                silentAudioNode.stop(audioContext.currentTime + 0.5);
+                
+                // Self-cleanup
+                setTimeout(() => {
+                    if (silentAudioNode) {
+                        try {
+                            silentAudioNode.disconnect();
+                            silentAudioNode = null;
+                        } catch (e) {}
+                    }
+                }, 600);
+            } catch (e) {
+                console.error('Error creating silent sound:', e);
+            }
+        }
+        
+        // Main animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Skip updating if paused (showing achievement, etc.)
+            if (isPaused) return;
+            
+            const deltaTime = Math.min(0.1, clock.getDelta()); // Cap delta time to avoid large jumps
+            
+            // Get audio data
+            const audioData = analyzeAudio();
+            
+            // Update warp fuel display
+            updateWarpFuelDisplay();
+            
+            // Apply additional warp drive effects to audio data if active
+            if (warpDriveActive) {
+                // Enhance beat detection during warp
+                audioData.beatFactor = Math.max(audioData.beatFactor, 0.3 * warpDriveEffectIntensity);
+                // Increase overall energy during warp
+                audioData.level = Math.min(1, audioData.level * (1 + warpDriveEffectIntensity));
+            }
+            
+            // Transitions are now handled in the updateStars function for both warp types
+            
+            // Update camera
+            updateCamera(deltaTime);
+            
+            // Update scene elements with audio data
+            updateStars(deltaTime, audioData);
+            updateParticleSystem(deltaTime, audioData);
+            updateCenterObject(deltaTime, audioData);
+            updateAnnotation(); // Update the annotation position
+            
+            // Update star explosions
+            for (let i = starExplosions.length - 1; i >= 0; i--) {
+                const explosion = starExplosions[i];
+                explosion.time += deltaTime;
+                
+                if (explosion.time >= explosion.duration) {
+                    // Remove expired explosions
+                    starExplosions.splice(i, 1);
+                    continue;
+                }
+                
+                // Update explosion particles
+                for (const particle of explosion.particles) {
+                    // Update position based on velocity
+                    particle.position.x += particle.velocity.x * deltaTime;
+                    particle.position.y += particle.velocity.y * deltaTime;
+                    particle.position.z += particle.velocity.z * deltaTime;
+                    
+                    // Fade out particle over time
+                    const lifeProgress = explosion.time / explosion.duration;
+                    particle.opacity = 1 - lifeProgress;
+                }
+            }
+            
+            // Render scene
+            renderer.render(scene, camera);
+        }
+        
+        // Function to set up the annotation timer
+        function setupAnnotationTimer() {
+            // Clear any existing timer
+            if (annotationTimer) {
+                clearTimeout(annotationTimer);
+                annotationTimer = null;
+            }
+            
+            // Reset auto-show flag
+            window.autoShowAnnotations = false;
+            
+            // Make sure annotations are hidden by default
+            const annotation = document.getElementById('annotation');
+            const line = document.getElementById('annotationLine');
+            if (annotation && line) {
+                annotation.style.opacity = '0';
+                annotation.style.visibility = 'hidden';
+                annotation.style.pointerEvents = 'none';
+                line.style.opacity = '0';
+            }
+            
+            // No longer setting up auto-show timer
+            // Annotations will only appear when the info button is clicked
+        }
+        
+        // Function to create the center click area for annotations
+        function createCenterClickArea() {
+            const centerClickArea = document.createElement('div');
+            centerClickArea.id = 'center-click-area';
+            document.body.appendChild(centerClickArea);
+            
+            // Center click area no longer shows annotations
+            // Functionality moved to ID avatar
+        }
+        
+        // Create warp fuel gauge element function (define before it's used)
+        let warpFuelGauge = null; // Initialize variable
+        
+        function createWarpFuelGauge() {
+            const fuelGauge = document.createElement('div');
+            fuelGauge.className = 'warp-fuel-gauge';
+            
+            const fuelLevel = document.createElement('div');
+            fuelLevel.className = 'warp-fuel-level';
+            fuelGauge.appendChild(fuelLevel);
+            
+            document.body.appendChild(fuelGauge);
+            return fuelGauge;
+        }
+        
+        // Function to update warp fuel display
+        function updateWarpFuelDisplay() {
+            if (!warpFuelGauge) return;
+            
+            // Show cooldown info when warp is disabled due to critical fuel
+            if (warpCooldown) {
+                warpFuelGauge.style.display = 'block';
+                const fuelLevel = warpFuelGauge.querySelector('.warp-fuel-level');
+                if (fuelLevel) {
+                    // Show recharging animation
+                    const progress = Math.min(1, (points - pointsAtDeactivation) / pointsNeededForReactivation);
+                    fuelLevel.style.transform = `scaleX(${Math.max(0, progress)})`;
+                    fuelLevel.style.background = 'linear-gradient(to right, #00ff99, #66ffcc)';
+                    
+                    // Create recharging indicator if it doesn't exist
+                    if (!document.getElementById('warp-recharging')) {
+                        const rechargingIndicator = document.createElement('div');
+                        rechargingIndicator.className = 'warp-indicator';
+                        rechargingIndicator.textContent = 'RECHARGING: ' + Math.floor(progress * 100) + '%';
+                        rechargingIndicator.id = 'warp-recharging';
+                        document.body.appendChild(rechargingIndicator);
+                    } else {
+                        // Update the percentage
+                        const indicator = document.getElementById('warp-recharging');
+                        indicator.textContent = 'RECHARGING: ' + Math.floor(progress * 100) + '%';
+                    }
+                }
+            }
+            else if (warpDriveActive) {
+                warpFuelGauge.style.display = 'block';
+                const fuelLevel = warpFuelGauge.querySelector('.warp-fuel-level');
+                if (fuelLevel) {
+                    // Calculate remaining fuel percentage (100 - lostPoints percentage)
+                    const remainingFuel = 1 - (lostPoints / maxLostPoints);
+                    fuelLevel.style.transform = `scaleX(${Math.max(0, remainingFuel)})`;
+                    
+                    // Use ultrawarp colors if active
+                    if (ultraWarpActive) {
+                        if (remainingFuel < 0.3) {
+                            fuelLevel.style.background = 'linear-gradient(to right, #0088ff, #00aaff)';
+                        } else if (remainingFuel < 0.6) {
+                            fuelLevel.style.background = 'linear-gradient(to right, #00ccff, #33eeff)';
+                        } else {
+                            fuelLevel.style.background = 'linear-gradient(to right, #33eeff, #88ffff)';
+                        }
+                    } else {
+                        // Regular warp colors
+                        if (remainingFuel < 0.3) {
+                            fuelLevel.style.background = 'linear-gradient(to right, #ff0000, #ff3333)';
+                        } else if (remainingFuel < 0.6) {
+                            fuelLevel.style.background = 'linear-gradient(to right, #ff9900, #ffcc00)';
+                        } else {
+                            fuelLevel.style.background = 'linear-gradient(to right, #ff3366, #ff66cc)';
+                        }
+                    }
+                }
+                
+                // Check if ultrawarp indicator should be shown
+                const ultraIndicator = document.getElementById('ultra-warp-indicator');
+                if (ultraWarpActive && !ultraIndicator) {
+                    // Create the ultra warp indicator if it doesn't exist
+                    const newIndicator = document.createElement('div');
+                    newIndicator.className = 'ultra-warp-indicator';
+                    newIndicator.textContent = 'ULTRA WARP';
+                    newIndicator.id = 'ultra-warp-indicator';
+                    document.body.appendChild(newIndicator);
+                    newIndicator.style.display = 'block';
+                } else if (ultraIndicator && !ultraWarpActive) {
+                    ultraIndicator.remove();
+                }
+            } else if (!warpCooldown) {
+                warpFuelGauge.style.display = 'none';
+                
+                // Remove ultra indicator if present
+                const ultraIndicator = document.getElementById('ultra-warp-indicator');
+                if (ultraIndicator) {
+                    ultraIndicator.remove();
+                }
+                
+                // Remove recharging indicator if present
+                const rechargingIndicator = document.getElementById('warp-recharging');
+                if (rechargingIndicator) {
+                    rechargingIndicator.remove();
+                }
+            }
+        }
+        
+        // Function to update annotation content based on track info
+        function updateAnnotationContent(trackInfo) {
+            // Update artwork
+            const artworkImg = document.getElementById('annotationArtwork');
+            artworkImg.src = trackInfo.artworkUrl;
+            artworkImg.alt = trackInfo.catalog + ' Artwork';
+            
+            // Update text content
+            document.getElementById('annotationTitle').textContent = trackInfo.title;
+            document.getElementById('annotationArtist').textContent = trackInfo.artist;
+            document.getElementById('annotationDetails').textContent = trackInfo.catalog + (trackInfo.year ? ' • ' + trackInfo.year : '');
+            
+            // Update purchase link and button text
+            const purchaseLink = document.getElementById('annotationLink');
+            purchaseLink.href = trackInfo.purchaseUrl;
+            purchaseLink.textContent = trackInfo.buttonText || "GET THIS TRACK"; // Use default if not specified
+            
+            // Update credits with current artist
+            updateCredits(trackInfo.artist);
+            
+            // Show the annotation with the new content
+            const annotation = document.getElementById('annotation');
+            if (annotation) {
+                annotation.style.opacity = '1';
+                annotation.style.visibility = 'visible';
+                annotation.style.pointerEvents = 'auto';
+                
+                // Make the line visible too
+                const line = document.getElementById('annotationLine');
+                if (line) line.style.opacity = '1';
+            }
+        }
+        
+        // Function to update credits based on current artist
+        function updateCredits(artist) {
+            const creditsElement = document.getElementById('credits');
+            if (creditsElement) {
+                creditsElement.textContent = 'music ' + artist.toLowerCase() + ' • gfx @shoeboxdnb';
+            }
+        }
+        
+        // Function to switch to fallback audio stream
+        function switchToFallbackAudio() {
+            console.log('Primary track finished, switching to fallback stream');
+            
+            // Properly clean up before switching to fallback audio
+            if (audioSource) {
+                audioSource.disconnect();
+                audioSource = null; // Clear the reference for garbage collection
+            }
+            
+            // Update annotation to show fallback stream info
+            updateAnnotationContent(CONFIG.fallbackTrackInfo);
+            
+            // Update status indicator
+            document.querySelector('.status').textContent = 'Streaming: ' + CONFIG.fallbackTrackInfo.title;
+            
+            // Update to use fallback URL
+            if (videoElement) {
+                // Set new source
+                videoElement.src = CONFIG.fallbackAudioUrl;
+                videoElement.loop = true; // Loop the stream
+                videoElement.load();
+                
+                // Try to play with proper error handling
+                videoElement.play()
+                .then(() => {
+                    console.log('Fallback stream playing successfully');
+                    // Reconnect the audio pipeline
+                    try {
+                        // Make sure audio context is running
+                        if (audioContext.state === 'suspended') {
+                            audioContext.resume();
+                        }
+                        
+                        // Create a new audio source for the updated video element
+                        audioSource = audioContext.createMediaElementSource(videoElement);
+                        
+                        // Connect the new source to the analyzer and destination
+                        audioSource.connect(audioAnalyser);
+                        audioAnalyser.connect(audioContext.destination);
+                        
+                        audioInitialized = true;
+                        audioPlaying = true;
+                        
+                        // Ensure video is unmuted
+                        videoElement.muted = false;
+                        videoElement.volume = 1.0;
+                        
+                        // Create a silent sound to wake up the audio context (helpful for Safari)
+                        createSilentSound();
+                    } catch (error) {
+                        console.error('Error reconnecting audio pipeline:', error);
+                        // If we can't reconnect, try the alternative fallback
+                        tryFallbackAudio(true);
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to play fallback audio:', err);
+                    // Try alternative approach
+                    tryFallbackAudio(true);
+                });
+            } else {
+                // If no video element, try fallback approach
+                tryFallbackAudio(true);
+            }
+        }
+        
+        // Modified tryFallbackAudio to support optional useFallback parameter
+        function tryFallbackAudio(useFallback = false) {
+            try {
+                // Clean up previous attempt
+                if (audioSource) {
+                    audioSource.disconnect();
+                }
+                
+                if (audioAnalyser) {
+                    audioAnalyser.disconnect();
+                }
+                
+                // Select audio URL based on parameter
+                const audioUrl = useFallback ? CONFIG.fallbackAudioUrl : CONFIG.audioUrl;
+                const trackInfo = useFallback ? CONFIG.fallbackTrackInfo : CONFIG.trackInfo;
+                
+                // Try with an audio element instead
+                const audioElement = document.createElement('audio');
+                audioElement.crossOrigin = 'anonymous';
+                audioElement.src = audioUrl;
+                audioElement.loop = useFallback; // Loop only for fallback stream
+                document.body.appendChild(audioElement);
+                
+                // Add ended event to switch to fallback when the track finishes (only for primary track)
+                if (!useFallback) {
+                    audioElement.addEventListener('ended', function() {
+                        switchToFallbackAudio();
+                    });
+                }
+                
+                // Safari specific handling for iOS
+                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                
+                if (isSafari || isIOS) {
+                    // Add specific Safari handling
+                    document.body.addEventListener('click', function safariInteractionFix() {
+                        // Only needed once
+                        document.body.removeEventListener('click', safariInteractionFix);
+                        
+                        if (audioContext && audioContext.state === 'suspended') {
+                            audioContext.resume();
+                        }
+                        
+                        if (audioElement && audioElement.paused) {
+                            audioElement.play();
+                        }
+                    }, {once: false});
+                }
+                
+                // Add CORS headers via fetch first
+                fetch(audioUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                })
+                .then(response => {
+                    audioElement.play()
+                    .then(() => {
+                        audioSource = audioContext.createMediaElementSource(audioElement);
+                        audioSource.connect(audioAnalyser);
+                        audioAnalyser.connect(audioContext.destination);
+                        
+                        document.querySelector('.status').textContent = useFallback ? 
+                            'Streaming: ' + trackInfo.title : 
+                            'Playing: ' + trackInfo.title;
+                        
+                        audioInitialized = true;
+                        
+                        // Enable monitoring for the fallback audio as well
+                        startAudioContextMonitoring();
+                        
+                        // Update annotation content
+                        updateAnnotationContent(trackInfo);
+                    })
+                    .catch(error => {
+                        console.error('Fallback audio failed:', error);
+                        document.querySelector('.status').textContent = 'Could not connect to audio';
+                    });
+                })
+                .catch(error => {
+                    console.error('Fetch failed:', error);
+                    document.querySelector('.status').textContent = 'Audio connection failed';
+                });
+            } catch (error) {
+                console.error('Fallback audio error:', error);
+                document.querySelector('.status').textContent = 'Audio unavailable';
+            }
+        }
+        
+        // Initialize the application
+        init();
+        
+        // Create fuel gauge after initialization
+        warpFuelGauge = createWarpFuelGauge();
+        
+        // Initialize credits with default artist
+        updateCredits(CONFIG.trackInfo.artist);
+        
+        // Final check to ensure scrolling is disabled
+        document.addEventListener('DOMContentLoaded', function() {
+            // Force scroll position to top
+            window.scrollTo(0, 0);
+            
+            // Reapply scroll prevention every second as a failsafe
+            setInterval(function() {
+                window.scrollTo(0, 0);
+            }, 1000);
+        });
+    </script>
+    <!-- Credits -->
+    <div class="credits" id="credits">music djairwalk • gfx @shoeboxdnb</div>
+    
+    <!-- ID Avatar Circle (initially hidden until audio starts) -->
+    <div class="id-avatar" id="id-avatar">
+        <img src="images/info-icon.svg" alt="Info" title="Show Annotations" width="28" height="28" />
+        <!-- Alternative icon option: <img src="images/info-icon-alt.svg" alt="Info" title="Show Annotations" width="28" height="28" /> -->
+    </div>
+    <script>
+        // Add event listener to the ID avatar button after the DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const idAvatar = document.getElementById('id-avatar');
+            if (idAvatar) {
+                idAvatar.addEventListener('click', function(event) {
+                    // Toggle annotations when ID avatar is clicked
+                    const annotation = document.getElementById('annotation');
+                    const line = document.getElementById('annotationLine');
+                    if (annotation && line) {
+                        // Check current state to toggle
+                        if (annotation.style.opacity === '1') {
+                            // Hide annotations if visible
+                            window.autoShowAnnotations = false;
+                            annotation.style.opacity = '0';
+                            annotation.style.visibility = 'hidden';
+                            annotation.style.pointerEvents = 'none';
+                            line.style.opacity = '0';
+                            
+                            // Clear any auto-hide timer
+                            if (window.annotationTimer) {
+                                clearTimeout(window.annotationTimer);
+                                window.annotationTimer = null;
+                            }
+                        } else {
+                            // Show annotations if hidden
+                            window.autoShowAnnotations = true;
+                            annotation.style.opacity = '1';
+                            annotation.style.visibility = 'visible';
+                            annotation.style.pointerEvents = 'auto';
+                            line.style.opacity = '1';
+                            
+                            // No auto-hide timer - will stay visible until clicked again
+                        }
+                    }
+                    
+                    // Prevent event propagation to avoid triggering hide-on-click-outside
+                    event.stopPropagation();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
