@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Plush Recordings">
+    <title>Plush Recordings - atmospheris, ambient, breakbeat-oriented music</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Jersey+15+Charted&family=Jersey+25&family=Micro+5&family=Pixelify+Sans:wght@400..700&family=Sixtyfour&family=Sixtyfour+Convergence&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Micro 5', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #e3e3e3;
+            line-height: 1;
+            letter-spacing: 0px;
+            font-size: 1.2em;
+            background-repeat: no-repeat;
+            background-color: #000;
+        }
+        header {
+            
+            color: #fff;
+            padding: 20px 0;
+            text-align: center;
+        }
+        header img {
+            max-width: 100%;
+            width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        main {
+            padding: 20px;
+            max-width: 1080px;
+            margin: auto;
+            font-size: 1.2em;
+        }
+        h1  {
+            font-family: "Sixtyfour", sans-serif;
+            color: #e3e3e3;
+            line-height: 2.4;
+            margin-top: 1.2em;
+            margin-bottom: 1em;
+            font-weight: 500;
+            font-variation-settings: "BLED" 0, "SCAN" 0;
+            font-optical-sizing: auto;
+        }
+        h2 {
+            font-family: "Sixtyfour", sans-serif;
+            color: #e3e3e3;
+            line-height: 1.8;
+            margin-top: 1.2em;
+            margin-bottom: 1em;
+            font-weight: 500;
+            font-variation-settings: "BLED" 0, "SCAN" 0;
+            font-optical-sizing: auto;
+        }
+        a {
+            color: #fe0101;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+            color: #fff;
+        }
+        
+        /* Media Queries for Responsive Design */
+        @media (min-width: 768px) {
+            header img {
+                max-width: 900px;
+                width: auto;
+            }
+            main {
+                font-size: 1.5em;
+            }
+            h1, h2 {
+                margin-top: 1.5em;
+                margin-bottom: 1.4em;
+            }
+        } 
+    </style>
+</head>
+<body>
+    <header>
+        <small>PLUSH-RELEASE.NFO<br />
+        FILE_ID.DIZ<br /></small>
+        <img src="images/plush-ascii-transparent.png" alt="Plush Recordings Logo" 
+            title="Plush Recordings" />
+        <!-- <section>
+            <p style="text-align: center;    ">
+                <a href="https://plush.bandcamp.com" target="_blank">Bandcamp</a> |
+                <a href="https://www.youtube.com/plushdnb" target="_blank">YouTube</a> |
+                <a href="https://soundcloud.com/plushrecordings" target="_blank">SoundCloud</a> |
+                <a href="https://open.spotify.com/playlist/1SxSvwwxaOIPWHsJ5Egtyp" target="_blank">Spotify</a> |
+                <a href="https://instagram.com/plushrecs" target="_blank">Instagram</a> |
+                <a href="https://x.com/plushrecs" target="_blank">X</a>
+            </p>
+        </section> -->
+
+        <h1>Est. 2009</h1>
+    </header>
+    <main>
+        <!-- Global styles for collapsible content -->
+        <style>
+            .collapsible-content {
+                overflow: hidden;
+                position: relative;
+                transition: max-height 0.5s ease;
+            }
+            .collapsible-content.expanded {
+                max-height: 1000px !important;
+            }
+            .collapsible-content::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 50px;
+                background: linear-gradient(transparent, black);
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+            }
+            .collapsible-content.expanded::after {
+                opacity: 0;
+            }
+            .toggle-button {
+                cursor: pointer;
+                display: inline-block;
+                padding: 8px 15px;
+                margin-top: 10px;
+                margin-bottom: 20px;
+                color: #eee;
+                background-color: #444;
+                font-size: 0.9em;
+                line-height: 1;
+                border: none;
+                border-radius: 4px;
+                text-transform: uppercase;
+                font-weight: 500;
+                font-family: 'Pixelify Sans', sans-serif;
+                letter-spacing: 0.5px;
+                transition: background-color 0.2s ease, color 0.2s ease;
+            }
+            .toggle-button:hover {
+                background-color: #555;
+                color: #fff;
+            }
+            @media (min-width: 768px) {
+                .collapsible-content {
+                    max-height: none !important;
+                    overflow: visible;
+                }
+                .collapsible-content::after {
+                    display: none;
+                }
+                .toggle-button {
+                    display: none;
+                }
+            }
+            /* Specific section heights */
+            .about-content {
+                max-height: 300px; /* Shows approximately 30 lines of text */
+            }
+            .art-content {
+                max-height: 100px; /* Shows fewer lines - as requested previously */
+            }
+        </style>
+        
+        <section>
+            
+            <div class="about-description">
+                <div class="collapsible-content about-content" id="about-text">
+                    <p>
+                        Founded in 2009, Plush Recordings is a U.S. based record label featuring a worlwide roster of talent including works by artists who push the boundaries of modern break-beat oriented music from atmospheric and ambient jungle, to retro liquid funk.  Some of our top talent includes 360 joYnt, Earl Grey, Utah Jazz, martianMan, Samurai Breaks, robbyt, Doctor Jeep, Balistik, Stunna, B Fuse, No Rules, Quentin Hiatus, and a slew of amazing artists who dedicate their life to music.
+                    </p>
+                    <p>
+                        Our mission is to provide a platform for emerging and established artists to showcase their unique styles, contributing to the evolution of the Jungle and Drum & Bass genres.
+                        Plush Recordings is home to a diverse catalog of releases that capture the essence of deep, immersive, and high-quality electronic music.
+                    </p>
+                </div>
+                <button class="toggle-button" id="toggle-about-text" onclick="toggleContent('about-text', 'toggle-about-text')">Read More</button>
+            </div>
+        </section>
+        <section>
+            <h2 style="text-align: center;">Latest Tracks</h2>
+            <style>
+                .album-grid {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 15px;
+                    margin-top: 20px;
+                }
+                .album-card {
+                    background-color: #1a1a1a;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    transition: transform 0.3s ease;
+                }
+                .album-card:hover {
+                    transform: translateY(-5px);
+                }
+                .album-image {
+                    width: 100%;
+                    aspect-ratio: 1/1; /* Makes it square */
+                    background-color: #333;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #666;
+                    font-size: 0.8em;
+                    background-repeat: no-repeat;
+                }
+                .album-image {
+                    width: 100%;
+                    aspect-ratio: 1/1; /* Makes it square */
+                    background-color: #333;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #666;
+                    font-size: 0.8em;
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                    background-position: center;
+                }
+                .album-card {
+                    cursor: pointer; /* Show pointer cursor to indicate clickable */
+                }
+                .album-info {
+                    padding: 10px;
+                    font-size: 0.8em;
+                }
+                .album-title {
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+                .album-artist {
+                    color: #999;
+                }
+                /* Responsive album grid */
+                @media (min-width: 768px) {
+                    .album-grid {
+                        grid-template-columns: repeat(4, 1fr);
+                    }
+                }
+            </style>
+            <div class="album-grid">
+ 
+
+                <div class="album-card">
+                   
+                <div class="album-image" style="background-image: url('cat/PLUSH120A/cover.jpg'); background-size: cover; background-position: center; color: transparent;"
+                onclick="window.location.href = 'https://plush.bandcamp.com/album/witchy-wobble/';">PLUSH120</div>
+
+                <a href="https://plush.bandcamp.com/album/witchy-wobble/">
+                    <div class="album-info">
+                        <div class="album-title">Witchy &amp; Wobble</div>
+                        <div class="album-artist">DJ Airwalk</div>
+                    </div>
+                </a>
+
+
+                </div>
+ 
+            </div>
+        </section>
+        <section>
+            <h2 style="text-align: center;">Interactive Art &amp; Simulations</h2>
+            
+            <div class="art-description">
+                <div class="collapsible-content art-content" id="art-text">
+                    <p>
+                        Hello everyone. This is a message from Mike Shoebox. I am working on a series of new pixel-art animations and interactive designs (through-code), to sync to all the amazing music we are releasing on PLUSH. These interactive demos will be available strictly on this website, because this is the only way we can host them publicly in the way they were meant to be experienced. If you notice any videos on social media of me showing off these demos, make sure you click through to the website to experience them in their full glory.
+                    </p>
+                    <p>
+                        My only goal with these demos is to create something cool and unique to go along with these sounds we all love so much. I hope you like them!
+                    </p>
+                </div>
+                <button class="toggle-button" id="toggle-art-text" onclick="toggleContent('art-text', 'toggle-art-text')">Read More</button>
+                <p>Works in progress...</p>
+            </div>
+            <style>
+                .art-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
+                    margin-top: 30px;
+                }
+                .art-card {
+                    background-color: #1a1a1a;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    transition: transform 0.3s ease;
+                }
+                .art-card:hover {
+                    transform: translateY(-5px);
+                }
+                .art-image {
+                    width: 100%;
+                    height: 100px;
+                    background-color: #333;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #666;
+                    font-size: 0.8em;
+                    overflow: hidden;
+                }
+                /* Responsive art grid */
+                @media (min-width: 576px) {
+                    .art-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+                @media (min-width: 992px) {
+                    .art-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+                .art-caption {
+                    padding: 10px;
+                    font-size: 0.8em;
+                    text-align: center;
+                }
+            </style>
+            <div class="art-grid">
+                <!-- Row 1 -->
+
+                <div class="art-card">
+                    <div class="art-image" style="height: auto;">
+                        <a href="simulations/starfield/index.html">
+                            <video style="background: #000; width: 100%;" src="simulations/starfield/thumbnail.mp4" autoplay loop muted></video>
+                        </a>
+                    </div>
+                    <div class="art-caption">Star Field Simulation</div>
+                </div>
+ 
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+   * . *  .  *   . * 
+ * .  * .  *  .  *  .
+.  *   * .   * .  *  
+   .  *   .  *   . * 
+*  .   *  .   *   . .
+                        </pre>
+
+
+                    </div>
+                    <div class="art-caption">Jungle Particles</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+~~~~~~~~~~~~~~~~~
+  ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+  ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+                        </pre>
+                    </div>
+                    <div class="art-caption">Audio Reactive Waves</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+     ✧      ✧     ✧   
+  ✧      ✧     ✧    
+✧      ✧     ✧      
+   ○        ○       ○ 
+ ○     ○       ○      
+                        </pre>
+                    </div>
+                    <div class="art-caption">Atmospheric Generative Art</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+▄▄▄▄  ▄  ▄▄▄▄  ▄  ▄▄▄▄
+█  █  █  █  █  █  █  █
+█  █  █  █  █  █  █  █
+▀▀▀▀  ▀  ▀▀▀▀  ▀  ▀▀▀▀
+                        </pre>
+                    </div>
+                    <div class="art-caption">Beat Mapping Visual</div>
+                </div>
+                
+                <!-- Row 2 -->
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+      /\      
+     /  \     
+    /    \    
+   /      \   
+__/        \__
+                        </pre>
+                    </div>
+                    <div class="art-caption">Pixel Landscape</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+  ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  
+ ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈ 
+≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈
+ ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈ 
+  ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  
+                        </pre>
+                    </div>
+                    <div class="art-caption">Liquid Motion</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+  ▂▃▄▅▆▇  ▇▆▅▄▃▂  
+ /|\      /|\
+  |        |  
+  |        |  
+ ▔▔▔      ▔▔▔ 
+                        </pre>
+                    </div>
+                    <div class="art-caption">Bass Physics</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+┏━┓┏━┓┏━┓┏━┓┏━┓┏━┓
+┃ ┃┃ ┃┃ ┃┃ ┃┃ ┃┃ ┃
+┗━┛┗━┛┗━┛┗━┛┗━┛┗━┛
+┏━┓┏━┓┏━┓┏━┓┏━┓┏━┓
+┗━┛┗━┛┗━┛┗━┛┗━┛┗━┛
+                        </pre>
+                    </div>
+                    <div class="art-caption">Rhythm Patterns</div>
+                </div>
+                <div class="art-card">
+                    <div class="art-image">
+                        <pre style="font-size: 0.5em; line-height: 1.2; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+░░░░░░░░░░░░░░░░░░
+░░░░░░▒▒▒▒░░░░░░░░
+░░░░▒▒▒▒▒▒▒▒░░░░░░
+░░░░▒▒▒▒▒▒▒▒░░░░░░
+░░░░░░▒▒▒▒░░░░░░░░
+                        </pre>
+                    </div>
+                    <div class="art-caption">Ambient Textures</div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Inquiries</h2>
+            <p>
+                For inquiries, collaborations, or demo submissions, please contact us.
+            </p>
+            <p>
+                <br />
+                <strong>Mike Ramirez (@shoeboxdnb)</strong><br />
+                Plush Recordings<br />
+                <a href="mailto:team@plushrecs.com">team@plushrecs.com</a><br>
+            </p>
+        </section>
+        <!-- <section>
+            <iframe width="100%" height="315" src="https://www.youtube.com/embed/7wJAS1-agPU?si=xn9vTUsNEAAgNT89" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </section> -->
+    </main>
+    <footer>
+        <p>&copy; 2025 KEYBRDIST INC dba Plush Recordings.  All Rights Reserved.</p>
+        <section>
+            <p style="text-align: center; font-size:0.7em; margin-top: 40px;">
+                <a href="https://plush.bandcamp.com" target="_blank">Bandcamp</a> |
+                <a href="https://www.youtube.com/plushdnb" target="_blank">YouTube</a> |
+                <a href="https://soundcloud.com/plushrecordings" target="_blank">SoundCloud</a> |
+                <a href="https://open.spotify.com/playlist/1SxSvwwxaOIPWHsJ5Egtyp" target="_blank">Spotify</a> |
+                <a href="https://instagram.com/plushrecs" target="_blank">Instagram</a> |
+                <a href="https://twitter.com/plushrecs" target="_blank">Twitter</a>
+            </p>
+        </section>
+        <section>
+            <p style="text-align: center; font-size:0.3em; margin-top: 40px;">Design &amp; Artwork: @shoeboxdnb</p>
+        </section>
+    </footer>
+    
+    <!-- JavaScript for collapsible sections -->
+    <script>
+        function toggleContent(contentId, buttonId) {
+            const content = document.getElementById(contentId);
+            const button = document.getElementById(buttonId);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                button.textContent = 'Read More';
+            } else {
+                content.classList.add('expanded');
+                button.textContent = 'Read Less';
+            }
+        }
+        
+        // Toggle between album image and video when album card is clicked
+        // No album card toggle script needed anymore since we only show the album image
+    </script>
+        <div class="outer">
+        </div>
+</body>
+</html>
