@@ -59,6 +59,9 @@ let midEnergy = 0;
 let highEnergy = 0;
 let showingAnnotation = false;
 
+// Track if fallback audio is playing (no lyrics when fallback is playing)
+let isPlayingFallback = false;
+
 // Default settings
 let autoRotate = true;
 let autoZoom = true;
@@ -841,7 +844,12 @@ function setupAudioAnalyzer(sourceElement) {
 }
 
 // Switch to fallback audio stream
-function switchToFallbackAudio() {
+function switchToFallbackAudio(forceFallback = false) {
+    console.log('Switching to fallback stream...');
+    
+    // Set flag to indicate fallback is playing (will prevent lyrics display)
+    isPlayingFallback = true;
+    
     try {
         // Update UI with fallback info
         updateAnnotationContent(CONFIG.fallbackTrackInfo);
@@ -1033,6 +1041,35 @@ function showTrackInfoAtTimestamp(currentTime) {
 function handleLyricsDisplay() {
     // Only proceed if audio is initialized
     if (!audioElement) return;
+    
+    // Skip displaying lyrics if fallback track is playing
+    if (isPlayingFallback) {
+        // Hide any currently visible lyrics if fallback just started playing
+        const lyricsElement = document.getElementById('lyricsVisualizer');
+        const lyricsContainer = lyricsElement?.querySelector('.lyrics-container');
+        
+        if (lyricsContainer && visibleLyrics.length > 0) {
+            // Clear all visible lyrics
+            visibleLyrics.forEach(lyricId => {
+                const lyricElement = document.getElementById(lyricId);
+                if (lyricElement) {
+                    lyricElement.classList.remove('visible');
+                    setTimeout(() => lyricElement.remove(), 1000);
+                }
+                
+                // Clear any pending timeout
+                if (lyricsTimeouts[lyricId]) {
+                    clearTimeout(lyricsTimeouts[lyricId]);
+                    delete lyricsTimeouts[lyricId];
+                }
+            });
+            
+            // Reset the visible lyrics array
+            visibleLyrics = [];
+        }
+        
+        return;
+    }
     
     const currentTime = audioElement.currentTime;
     const lyricsElement = document.getElementById('lyricsVisualizer');
