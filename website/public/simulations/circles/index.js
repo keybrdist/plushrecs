@@ -5,10 +5,6 @@ import { OrbitControls } from '//unpkg.com/three@0.120.0/examples/jsm/controls/O
 // Configuration
 // ----
 const W = 10, H = 10, SW = W * 20, SH = H * 20;
-const IMG_URLS = [
-    "image3.jpeg",
-    "image2.jpeg",
-];
 
 // Audio & Track configuration
 const CONFIG = {
@@ -17,18 +13,96 @@ const CONFIG = {
         width: 200,
         height: 150
     },
-    // Primary audio configuration
-    audioUrl: "https://cdn-prod-1.labelgrid.com/labels/plushrecs/320/ca6494fa-405b-4828-a24f-97b9b84c2200.mp3",
-    trackInfo: {
-        title: "IN CIRCLES",
-        artist: "ISHE",
-        catalog: "PLUSH121",
-        year: "2025",
-        artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg", // Update with actual path
-        purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
-        buttonText: "GET THIS RELEASE"
-    },
-    // Fallback audio configuration (used when primary track finishes)
+    // Primary audio configuration - now an array of tracks to play in sequence
+    tracks: [
+        {
+            audioUrl: "https://cdn-stg-1.labelgrid.com/labels/plushrecs/320/1806ccbd-0108-43f1-8e3e-5336ee296dc9.mp3",
+            // Track-specific images
+            images: [
+                "right4u1.jpeg",
+                "right4u2.jpeg"
+            ],
+            trackInfo: {
+                title: "RIGHT 4 U",
+                artist: "ISHE",
+                catalog: "PLUSH121",
+                year: "2025",
+                artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg",
+                purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
+                buttonText: "GET THIS RELEASE"
+            },
+            // Whether to automatically show album info at specific timestamp
+            autoShowAlbumInfo: true,
+            // Minimum zoom level for this track (zoomed out)
+            minZoomLevel: 90
+        },
+        {
+            audioUrl: "https://cdn-stg-1.labelgrid.com/labels/plushrecs/320/b190e303-1ad1-4e71-81ff-eca4abcdc5dc.mp3",
+            // Track-specific images
+            images: [
+                "auroras3.png", 
+                "auroras2.png"
+            ],
+            trackInfo: {
+                title: "AURORAS",
+                artist: "ISHE",
+                catalog: "PLUSH121",
+                year: "2025",
+                artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg",
+                purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
+                buttonText: "GET THIS RELEASE"
+            },
+            // Whether to automatically show album info at specific timestamp
+            autoShowAlbumInfo: false,
+            // Minimum zoom level for this track (zoomed out)
+            minZoomLevel: 80
+        },
+        {
+            audioUrl: "https://cdn-prod-1.labelgrid.com/labels/plushrecs/320/ca6494fa-405b-4828-a24f-97b9b84c2200.mp3",
+            // Track-specific images
+            images: [
+                "image3.jpeg",
+                "image2.jpeg"
+            ],
+            trackInfo: {
+                title: "IN CIRCLES",
+                artist: "ISHE",
+                catalog: "PLUSH121",
+                year: "2025",
+                artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg", 
+                purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
+                buttonText: "GET THIS RELEASE"
+            },
+            // Whether to automatically show album info at specific timestamp
+            autoShowAlbumInfo: false,
+            // Minimum zoom level for this track (zoomed out)
+            minZoomLevel: 40,
+            // Track-specific lyrics with their timestamps
+            lyrics: [
+                { id: "track1_lyric1", startTime: 46, endTime: 49, text: "Got me going round in circles.." },
+                { id: "track1_lyric2", startTime: 118, endTime: 122, text: "Got me going round in circles.." },
+                { id: "track1_lyric3", startTime: 144, endTime: 147, text: "Got me going round in circles.." },
+                { id: "track1_lyric4", startTime: 146, endTime: 148, text: "Through the motions.." },
+                { id: "track1_lyric5", startTime: 147, endTime: 153, text: "Got me thinking.." },
+                { id: "track1_lyric6", startTime: 150, endTime: 156, text: "I'm better off alone.." },
+                { id: "track1_lyric7", startTime: 154, endTime: 162, text: "Can't play these games with you no more." },
+                { id: "track1_lyric8", startTime: 158, endTime: 163, text: "Up and down and round and round.." },
+                { id: "track1_lyric9", startTime: 162, endTime: 168, text: "Round and round.." },
+                { id: "track1_lyric10", startTime: 165, endTime: 168, text: "Up and down and round and round.." },
+                { id: "track1_lyric11", startTime: 167, endTime: 169, text: "Got me going round in circles.." },
+                { id: "track1_lyric12", startTime: 169, endTime: 171, text: "Through the motions.." },
+                { id: "track1_lyric13", startTime: 170, endTime: 175, text: "Got me thinking.." },
+                { id: "track1_lyric14", startTime: 172, endTime: 176, text: "I'm better off alone.." },
+                { id: "track1_lyric15", startTime: 177, endTime: 182, text: "Can't play these games with you no more." },
+                { id: "track1_lyric16", startTime: 182, endTime: 187, text: "Up and down and round and round.." },
+                { id: "track1_lyric17", startTime: 186, endTime: 192, text: "Round and round.." },
+                { id: "track1_lyric18", startTime: 189, endTime: 192, text: "Up and down and round and round.." }
+            ]
+        }
+    ],
+    // Track to start with (0-based index)
+    currentTrackIndex: 0,
+    // Fallback audio configuration (used when all tracks finish)
     fallbackAudioUrl: "https://azura.drmnbss.org:8010/radio.mp3",
     fallbackTrackInfo: {
         title: "PLUSH RADIO",
@@ -150,9 +224,15 @@ function startControlledZoom() {
     // Initial direction is zooming out (from max to min)
     zoomDirection = -1;
     
+    // Get current track's minimum zoom level or use default
+    const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+    const trackMinZoom = currentTrack.minZoomLevel !== undefined ? currentTrack.minZoomLevel : controlledZoomMin;
+    
+    console.log(`Using min zoom level ${trackMinZoom} for track: ${currentTrack.trackInfo.title}`);
+    
     // Set up initial animation values
     controlledZoomStartValue = controlledZoomMax;
-    controlledZoomTargetValue = controlledZoomMin;
+    controlledZoomTargetValue = trackMinZoom;
     controlledZoomStartTime = performance.now();
     
     // Start the smooth animation
@@ -227,13 +307,19 @@ function startSmoothZoomAnimation() {
             if (zoomDirection === -1) {
                 // We just reached min zoom, now zoom back in
                 zoomDirection = 1;
-                controlledZoomStartValue = controlledZoomMin;
+                // Get current track's minimum zoom level or use default
+                const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+                const trackMinZoom = currentTrack.minZoomLevel !== undefined ? currentTrack.minZoomLevel : controlledZoomMin;
+                controlledZoomStartValue = trackMinZoom;
                 controlledZoomTargetValue = controlledZoomMax;
             } else {
                 // We just reached max zoom, now zoom back out
                 zoomDirection = -1;
                 controlledZoomStartValue = controlledZoomMax;
-                controlledZoomTargetValue = controlledZoomMin;
+                // Get current track's minimum zoom level or use default
+                const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+                const trackMinZoom = currentTrack.minZoomLevel !== undefined ? currentTrack.minZoomLevel : controlledZoomMin;
+                controlledZoomTargetValue = trackMinZoom;
             }
             
             // Reset animation start time
@@ -359,6 +445,10 @@ function initializeUI() {
     }
 }
 
+// Global variables to store geometries and meshes for updating
+let sceneGeoms = [];
+let sceneMeshes = [];
+
 // Create the 3D scene
 function createScene() {
     // Add lights
@@ -386,7 +476,7 @@ function createScene() {
     }
 
     // Make Geometry - 2 Sets
-    const geoms = [];
+    sceneGeoms = [];
     for (let k = 0; k <= 1; ++k) {
         const geom = new $.BufferGeometry();
         const N = ((SW - k) >> 1) * (SH - 1);
@@ -424,16 +514,43 @@ function createScene() {
         geom.setAttribute('position', new $.Float32BufferAttribute(pos, 3));
         geom.setAttribute('uv', new $.Float32BufferAttribute(uv, 2));
         geom.computeVertexNormals();
-        geoms.push(geom);
+        sceneGeoms.push(geom);
     }
 
-    // Make Meshes
-    for (const [i, geom] of geoms.entries()) {
-        const map = new $.TextureLoader().load(IMG_URLS[i]);
-        const mat = new $.MeshLambertMaterial({ map, side: $.DoubleSide });
-        const mesh = new $.Mesh(geoms[i], mat);
-        g.add(mesh);
+    // Initialize the scene with the first track's images
+    updateSceneWithTrackImages();
+}
+
+// Update scene with the current track's images
+function updateSceneWithTrackImages() {
+    // Clear previous meshes
+    if (sceneMeshes.length > 0) {
+        sceneMeshes.forEach(mesh => {
+            g.remove(mesh);
+        });
+        sceneMeshes = [];
     }
+    
+    // Get current track images
+    const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+    const images = currentTrack.images;
+    
+    if (!images || images.length < 2) {
+        console.error('Current track does not have enough images');
+        return;
+    }
+    
+    // Create new meshes with track-specific images
+    for (const [i, geom] of sceneGeoms.entries()) {
+        if (i < images.length) {
+            const map = new $.TextureLoader().load(images[i]);
+            const mat = new $.MeshLambertMaterial({ map, side: $.DoubleSide });
+            const mesh = new $.Mesh(sceneGeoms[i], mat);
+            g.add(mesh);
+            sceneMeshes.push(mesh);
+        }
+    }
+    
     scene.add(g);
 }
 
@@ -639,17 +756,20 @@ function initStreamAudio() {
             });
         }
         
-        // Set source to configured audio URL
-        audioElement.src = CONFIG.audioUrl;
+        // Get the current track based on the index
+        const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
         
-        // Try to play directly with the audio element first (simpler approach)
-        console.log('Starting audio playback...');
+        // Set source to configured audio URL for the current track
+        audioElement.src = currentTrack.audioUrl;
         
-        // Set up a listener to seek to 120 seconds after metadata is loaded
+        // Set up a listener to seek to 140 seconds after metadata is loaded
         audioElement.addEventListener('loadedmetadata', () => {
-            console.log('Audio metadata loaded, seeking to 120 seconds');
+            console.log('Audio metadata loaded, seeking to 140 seconds');
             audioElement.currentTime = 140;
         }, { once: true });
+        
+        // Try to play directly with the audio element first (simpler approach)
+        console.log(`Starting audio playback for track ${CONFIG.currentTrackIndex + 1}/${CONFIG.tracks.length}: ${currentTrack.trackInfo.title}...`);
         
         audioElement.play()
             .then(() => {
@@ -662,15 +782,19 @@ function initStreamAudio() {
                     idAvatar.style.display = 'flex';
                 }
                 
+                // Get current track info
+                const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+                const trackInfo = currentTrack.trackInfo;
+                
                 // Display the current track info
-                document.querySelector('.status').textContent = 'Playing: ' + CONFIG.trackInfo.artist + ' - ' + CONFIG.trackInfo.title;
+                document.querySelector('.status').textContent = 'Playing: ' + trackInfo.artist + ' - ' + trackInfo.title;
                 
                 // Initialize and update annotations
                 initializeAnnotation();
-                updateAnnotationContent(CONFIG.trackInfo);
+                updateAnnotationContent(trackInfo);
                 
                 // Update credits display
-                updateCredits(CONFIG.trackInfo.artist);
+                updateCredits(trackInfo.artist);
                 
                 // Mark audio as initialized
                 audioInitialized = true;
@@ -682,12 +806,14 @@ function initStreamAudio() {
                 console.error('Audio element playback failed, trying video element fallback:', error);
                 
                 // Fall back to using the video element if audio element fails
-                videoElement.src = CONFIG.audioUrl;
+                // Get current track info
+                const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+                videoElement.src = currentTrack.audioUrl;
                 
-                // Seek to 120 seconds after video metadata is loaded
+                // Seek to 140 seconds after video metadata is loaded
                 videoElement.addEventListener('loadedmetadata', () => {
-                    console.log('Video metadata loaded, seeking to 120 seconds');
-                    videoElement.currentTime = 120;
+                    console.log('Video metadata loaded, seeking to 140 seconds');
+                    videoElement.currentTime = 140;
                 }, { once: true });
                 
                 const attemptVideoPlay = () => {
@@ -703,15 +829,18 @@ function initStreamAudio() {
                                 idAvatar.style.display = 'flex';
                             }
                             
+                            // Get track info from current track
+                            const trackInfo = currentTrack.trackInfo;
+                            
                             // Display the current track info
-                            document.querySelector('.status').textContent = 'Playing: ' + CONFIG.trackInfo.artist + ' - ' + CONFIG.trackInfo.title;
+                            document.querySelector('.status').textContent = 'Playing: ' + trackInfo.artist + ' - ' + trackInfo.title;
                             
                             // Initialize and update annotations
                             initializeAnnotation();
-                            updateAnnotationContent(CONFIG.trackInfo);
+                            updateAnnotationContent(trackInfo);
                             
                             // Update credits display
-                            updateCredits(CONFIG.trackInfo.artist);
+                            updateCredits(trackInfo.artist);
                             
                             // Mark audio as initialized
                             audioInitialized = true;
@@ -730,10 +859,28 @@ function initStreamAudio() {
                 videoElement.addEventListener('loadedmetadata', attemptVideoPlay);
             });
         
-        // Handle when playback stops
+        // Handle when a track completes
         audioElement.addEventListener('ended', () => {
-            console.log('Main audio track ended, switching to fallback stream');
-            switchToFallbackAudio();
+            console.log(`Track ${CONFIG.currentTrackIndex + 1}/${CONFIG.tracks.length} ended`);
+            
+            // Try playing the next track if there is one
+            if (CONFIG.currentTrackIndex < CONFIG.tracks.length - 1) {
+                // Move to the next track
+                CONFIG.currentTrackIndex++;
+                console.log(`Moving to track ${CONFIG.currentTrackIndex + 1}/${CONFIG.tracks.length}`);
+                
+                // Reset track info display flag
+                trackInfoShownAt208 = false;
+                
+                // Update scene with new track's images
+                updateSceneWithTrackImages();
+                
+                // Start playback of the next track at the specified time
+                initStreamAudio();
+            } else {
+                console.log('All tracks have finished, switching to fallback stream');
+                switchToFallbackAudio();
+            }
         });
         
         // Handle errors
@@ -973,40 +1120,14 @@ let lyricsTimeouts = {}; // Store timeouts for each lyric
 let trackInfoShownAt208 = false;
 let trackInfoTimeout = null;
 
-// Define lyrics with their specific timestamps (in seconds)
-let i = 0;
-const trackLyrics = [
-    { id: "lyric" + i++, startTime: 46, endTime: 49, text: "Got me going round in circles.." },
-    { id: "lyric" + i++, startTime: 118, endTime: 122, text: "Got me going round in circles.." },
-    // { id: "lyric3", startTime: 193, endTime: 200, text: "You got me going round in circles.." },
-
-    { id: "lyric" + i++, startTime: 144, endTime: 147, text: "Got me going round in circles.." },
-    { id: "lyric" + i++, startTime: 146, endTime: 148, text: "Through the motions.." },
-    { id: "lyric" + i++, startTime: 147, endTime: 153, text: "Got me thinking.." },
-    { id: "lyric" + i++, startTime: 150, endTime: 156, text: "I'm better off alone.." },
-    { id: "lyric" + i++, startTime: 154, endTime: 162, text: "Can't play these games with you no more." },
-
-    { id: "lyric" + i++, startTime: 158, endTime: 163, text: "Up and down and round and round.." },
-    { id: "lyric" + i++, startTime: 162, endTime: 168, text: "Round and round.." },
-    { id: "lyric" + i++, startTime: 165, endTime: 168, text: "Up and down and round and round.." },
-
-    { id: "lyric" + i++, startTime: 167, endTime: 169, text: "Got me going round in circles.." },
-    { id: "lyric" + i++, startTime: 169, endTime: 171, text: "Through the motions.." },
-    { id: "lyric" + i++, startTime: 170, endTime: 175, text: "Got me thinking.." },
-    { id: "lyric" + i++, startTime: 172, endTime: 176, text: "I'm better off alone.." },
-    { id: "lyric" + i++, startTime: 177, endTime: 182, text: "Can't play these games with you no more." },
-
-    { id: "lyric" + i++, startTime: 182, endTime: 187, text: "Up and down and round and round.." },
-    { id: "lyric" + i++, startTime: 186, endTime: 192, text: "Round and round.." },
-    { id: "lyric" + i++, startTime: 189, endTime: 192, text: "Up and down and round and round.." },
- 
-];
-
 // Function to show track info at specific time
 function showTrackInfoAtTimestamp(currentTime) {
-    // Show track info at 208 seconds for 15 seconds
-    if (currentTime >= 208 && currentTime <= 209 && !trackInfoShownAt208) {
-        console.log('Showing track info at', currentTime.toFixed(1), 'seconds');
+    // Get the current track
+    const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+    
+    // Only show track info if autoShowAlbumInfo is true for this track
+    if (currentTime >= 208 && currentTime <= 209 && !trackInfoShownAt208 && currentTrack.autoShowAlbumInfo) {
+        console.log('Showing track info at', currentTime.toFixed(1), 'seconds for track:', currentTrack.trackInfo.title);
         trackInfoShownAt208 = true;
         
         // Show the annotation with track info
@@ -1080,8 +1201,35 @@ function handleLyricsDisplay() {
     
     if (!lyricsContainer) return;
     
-    // Check each lyric in the trackLyrics array
-    trackLyrics.forEach(lyric => {
+    // Get the current track
+    const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+    
+    // Check if the current track has lyrics
+    if (!currentTrack.lyrics || !Array.isArray(currentTrack.lyrics)) {
+        // If no lyrics for this track, hide any visible lyrics
+        if (visibleLyrics.length > 0) {
+            visibleLyrics.forEach(lyricId => {
+                const lyricElement = document.getElementById(lyricId);
+                if (lyricElement) {
+                    lyricElement.classList.remove('visible');
+                    setTimeout(() => lyricElement.remove(), 1000);
+                }
+                
+                // Clear any pending timeout
+                if (lyricsTimeouts[lyricId]) {
+                    clearTimeout(lyricsTimeouts[lyricId]);
+                    delete lyricsTimeouts[lyricId];
+                }
+            });
+            
+            // Reset the visible lyrics array
+            visibleLyrics = [];
+        }
+        return;
+    }
+    
+    // Check each lyric in the current track's lyrics array
+    currentTrack.lyrics.forEach(lyric => {
         const lyricId = lyric.id;
         
         // First, check if we need to hide any lyrics that are past their end time
@@ -1147,7 +1295,7 @@ function handleLyricsDisplay() {
 function updateCredits(artist) {
     const creditsElement = document.getElementById('credits');
     if (creditsElement) {
-        creditsElement.textContent = `music ${artist} • gfx ycwhk x SHOEBOX`;
+        creditsElement.textContent = `music ${artist.toUpperCase()} • gfx YCWHK x SHOEBOX`;
     }
 }
 
