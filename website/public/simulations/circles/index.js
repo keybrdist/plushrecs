@@ -594,6 +594,9 @@ function initializeAudio() {
         // Add to DOM for debugging and to ensure it doesn't get garbage collected
         audioElement.style.display = 'none';
         document.body.appendChild(audioElement);
+        
+        // Add timeupdate event listener for lyrics timing
+        audioElement.addEventListener('timeupdate', handleLyricsDisplay);
     }
     
     // Create video element for compatibility with certain streaming formats
@@ -638,6 +641,13 @@ function initStreamAudio() {
         
         // Try to play directly with the audio element first (simpler approach)
         console.log('Starting audio playback...');
+        
+        // Set up a listener to seek to 120 seconds after metadata is loaded
+        audioElement.addEventListener('loadedmetadata', () => {
+            console.log('Audio metadata loaded, seeking to 120 seconds');
+            audioElement.currentTime = 140;
+        }, { once: true });
+        
         audioElement.play()
             .then(() => {
                 console.log('Audio playback started successfully!');
@@ -652,7 +662,6 @@ function initStreamAudio() {
                 // Display the current track info
                 document.querySelector('.status').textContent = 'Playing: ' + CONFIG.trackInfo.artist + ' - ' + CONFIG.trackInfo.title;
                 
-
                 // Initialize and update annotations
                 initializeAnnotation();
                 updateAnnotationContent(CONFIG.trackInfo);
@@ -671,6 +680,12 @@ function initStreamAudio() {
                 
                 // Fall back to using the video element if audio element fails
                 videoElement.src = CONFIG.audioUrl;
+                
+                // Seek to 120 seconds after video metadata is loaded
+                videoElement.addEventListener('loadedmetadata', () => {
+                    console.log('Video metadata loaded, seeking to 120 seconds');
+                    videoElement.currentTime = 120;
+                }, { once: true });
                 
                 const attemptVideoPlay = () => {
                     videoElement.play()
@@ -940,6 +955,155 @@ function toggleAnnotations() {
             annotation.style.pointerEvents = 'auto';
         }
     }
+}
+
+// Variables for lyrics visualization
+let visibleLyrics = []; // Track which lyrics are currently visible
+let lyricsTimeouts = {}; // Store timeouts for each lyric
+
+// Variable to track if track info has been shown at the specified timestamp
+let trackInfoShownAt208 = false;
+let trackInfoTimeout = null;
+
+// Define lyrics with their specific timestamps (in seconds)
+let i = 0;
+const trackLyrics = [
+    { id: "lyric" + i++, startTime: 46, endTime: 49, text: "Got me going round in circles.." },
+    { id: "lyric" + i++, startTime: 118, endTime: 122, text: "Got me going round in circles.." },
+    // { id: "lyric3", startTime: 193, endTime: 200, text: "You got me going round in circles.." },
+
+    { id: "lyric" + i++, startTime: 144, endTime: 147, text: "Got me going round in circles.." },
+    { id: "lyric" + i++, startTime: 146, endTime: 148, text: "Through the motions.." },
+    { id: "lyric" + i++, startTime: 147, endTime: 153, text: "Got me thinking.." },
+    { id: "lyric" + i++, startTime: 150, endTime: 156, text: "I'm better off alone.." },
+    { id: "lyric" + i++, startTime: 154, endTime: 162, text: "Can't play these games with you no more." },
+
+    { id: "lyric" + i++, startTime: 158, endTime: 163, text: "Up and down and round and round.." },
+    { id: "lyric" + i++, startTime: 162, endTime: 168, text: "Round and round.." },
+    { id: "lyric" + i++, startTime: 165, endTime: 168, text: "Up and down and round and round.." },
+
+    { id: "lyric" + i++, startTime: 167, endTime: 169, text: "Got me going round in circles.." },
+    { id: "lyric" + i++, startTime: 169, endTime: 171, text: "Through the motions.." },
+    { id: "lyric" + i++, startTime: 170, endTime: 175, text: "Got me thinking.." },
+    { id: "lyric" + i++, startTime: 172, endTime: 176, text: "I'm better off alone.." },
+    { id: "lyric" + i++, startTime: 177, endTime: 182, text: "Can't play these games with you no more." },
+
+    { id: "lyric" + i++, startTime: 182, endTime: 187, text: "Up and down and round and round.." },
+    { id: "lyric" + i++, startTime: 186, endTime: 192, text: "Round and round.." },
+    { id: "lyric" + i++, startTime: 189, endTime: 192, text: "Up and down and round and round.." },
+ 
+];
+
+// Function to show track info at specific time
+function showTrackInfoAtTimestamp(currentTime) {
+    // Show track info at 208 seconds for 15 seconds
+    if (currentTime >= 208 && currentTime <= 209 && !trackInfoShownAt208) {
+        console.log('Showing track info at', currentTime.toFixed(1), 'seconds');
+        trackInfoShownAt208 = true;
+        
+        // Show the annotation with track info
+        const annotation = document.getElementById('annotation');
+        if (annotation) {
+            annotation.style.opacity = '1';
+            annotation.style.visibility = 'visible';
+            annotation.style.pointerEvents = 'auto';
+            showingAnnotation = true;
+            
+            // Update track info display if needed
+            updateAnnotationContent(CONFIG.trackInfo);
+            
+            // Hide after 15 seconds
+            clearTimeout(trackInfoTimeout);
+            trackInfoTimeout = setTimeout(() => {
+                annotation.style.opacity = '0';
+                annotation.style.visibility = 'hidden';
+                annotation.style.pointerEvents = 'none';
+                showingAnnotation = false;
+                
+                // Reset so it can be shown again if needed (e.g., for development/testing)
+                setTimeout(() => {
+                    trackInfoShownAt208 = false;
+                }, 10000); // Wait 10 seconds before allowing it to show again
+            }, 15000);
+        }
+    }
+}
+
+// Handle the timing of lyrics display
+function handleLyricsDisplay() {
+    // Only proceed if audio is initialized
+    if (!audioElement) return;
+    
+    const currentTime = audioElement.currentTime;
+    const lyricsElement = document.getElementById('lyricsVisualizer');
+    const lyricsContainer = lyricsElement?.querySelector('.lyrics-container');
+    
+    // Check for track info display at specific timestamp
+    showTrackInfoAtTimestamp(currentTime);
+    
+    if (!lyricsContainer) return;
+    
+    // Check each lyric in the trackLyrics array
+    trackLyrics.forEach(lyric => {
+        const lyricId = lyric.id;
+        
+        // First, check if we need to hide any lyrics that are past their end time
+        if (visibleLyrics.includes(lyricId) && currentTime > lyric.endTime) {
+            console.log('Hiding lyric at', currentTime.toFixed(1), 'seconds:', lyric.text);
+            
+            // Find and hide the lyric element
+            const lyricElement = document.getElementById(lyricId);
+            if (lyricElement) {
+                lyricElement.classList.remove('visible');
+                
+                // Remove from visible lyrics array after transition
+                setTimeout(() => {
+                    // Remove the element from DOM after transition
+                    lyricElement.remove();
+                    
+                    // Remove from the tracking array
+                    const index = visibleLyrics.indexOf(lyricId);
+                    if (index > -1) {
+                        visibleLyrics.splice(index, 1);
+                    }
+                }, 1000); // Match transition duration in CSS
+            }
+            
+            // Clear any pending timeout
+            if (lyricsTimeouts[lyricId]) {
+                clearTimeout(lyricsTimeouts[lyricId]);
+                delete lyricsTimeouts[lyricId];
+            }
+        }
+        
+        // Then, check if we need to show any lyrics that should be visible now
+        if (!visibleLyrics.includes(lyricId) && 
+            currentTime >= lyric.startTime && 
+            currentTime <= lyric.endTime) {
+            
+            console.log('Showing lyric at', currentTime.toFixed(1), 'seconds:', lyric.text);
+            
+            // Create a new lyric element
+            const lyricElement = document.createElement('div');
+            lyricElement.id = lyricId;
+            lyricElement.className = 'lyric-line';
+            lyricElement.textContent = lyric.text;
+            
+            // Add to the container
+            lyricsContainer.appendChild(lyricElement);
+            
+            // Add to visible lyrics tracking array
+            visibleLyrics.push(lyricId);
+            
+            // Force a reflow before adding the visible class for proper transition
+            void lyricElement.offsetWidth;
+            
+            // Make visible with a short delay for the stacking effect
+            setTimeout(() => {
+                lyricElement.classList.add('visible');
+            }, 50);
+        }
+    });
 }
 
 // Update the credits display
