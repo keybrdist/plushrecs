@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <title>Audio Reactive Circles Animation</title>
+<body>
+    <div class="container">
+        <header>
+        </header>
+        <main>
+            <!-- Audio start button -->
+            <button class="start-audio" id="startAudio">START AUDIO</button>
+            
+            <!-- Direct audio element for fallback -->
+            <audio id="directAudio" style="display:none;" controls preload="auto" crossorigin="anonymous"></audio>
+            
+            <div id="canvas-container">
+                <canvas id="circleCanvas"></canvas>
+                <button class="controls-toggle" id="controlsToggle">+</button>
+            </div>
+            
+            <!-- Track annotation display -->
+            <div id="annotation" class="annotation">
+                <div class="annotation-artwork">
+                    <img id="annotationArtwork" src="" alt="Track Artwork">
+                </div>
+                <div class="annotation-content">
+                    <div id="annotationTitle" class="annotation-title"></div>
+                    <div id="annotationArtist" class="annotation-artist"></div>
+                    <div id="annotationDetails" class="annotation-details"></div>
+                    <a id="purchaseLink" class="get-track-button" href="" target="_blank"></a>
+                </div>
+            </div>
+            <div id="annotationLine" class="annotation-line"></div>
+            <div class="controls">
+                <div class="zoom-control">
+                    <label for="zoomSlider">ZOOM:</label>
+                    <input type="range" id="zoomSlider" min="50" max="350" value="77">
+                    <span id="zoomValue">77</span>
+                </div>
+                <div class="zoom-speed-control">
+                    <label for="zoomSpeedSlider">ZOOM SPEED:</label>
+                    <input type="range" id="zoomSpeedSlider" min="0" max="100" value="1">
+                    <span id="zoomSpeedValue">1</span>
+                </div>
+                <div class="auto-rotate-control">
+                    <label for="autoRotateToggle">AUTO ROTATE:</label>
+                    <input type="checkbox" id="autoRotateToggle" checked>
+                </div>
+                <div class="auto-zoom-control">
+                    <label for="autoZoomToggle">AUTO ZOOM:</label>
+                    <input type="checkbox" id="autoZoomToggle" checked>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Credits -->
+    <div class="credits" id="credits"></div>
+    
+    <!-- ID Avatar Circle (for showing annotations) -->
+    <div class="id-avatar" id="id-avatar">
+        <img src="../starfield/images/info-icon.svg" alt="Info" title="Show Annotations" width="28" height="28" />
+    </div>
+    
+    <!-- Audio Status display -->
+    <div class="status" id="status">Click Start to begin</div>
+    
+    <script type="module" src="index.js"></script>
+</body>
+</html>

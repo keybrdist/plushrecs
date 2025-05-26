@@ -1,3 +1,6 @@
+
+                                                                                                             
+                                                                                                             
                          10000000001                                                 00000000000             
                          10000000000                                                 00000000000             
                          10000000000                                                 00000000000             
@@ -15,43 +18,54 @@
  000000000000000000001   10000000000    00000000 00000000000 10000000000000000000    00000000000 00000000000 
  000000000000000001      10000000000       00000 00000000000 00000000000000000       00000000000 00000000000 
  000000000001                                                                                                
- 000000000001     00010    00000     000000     000000     000000    000000     0    000000    11111   11111 
- 000000000000     0       000000     0          0    0     0         0    0     0    0    0   10   0    0    
-  1111111111      0       000000     000000     000000     0         100000     0    0    0    10100  0000
-                                                                                                0000         
+ 000000000001     00010   000000     000000     000000     111111   000000     0    000000    11111    11111 
+ 000000000000     0       0000       0          0    0     0        00   01    0    0    0   10   0     0    
+  1111111111      0       000000     000000     000000     0        000000     0    0    0    10100   0000   
+                                                                                              00000          
+
+
 
 Plush Recordings presents..
 
-PLUSH120
+In Circles EP
 
-Artist   : DJ Airwalk
-Album    : Witchy Wobble / The Highest Point
-Date     : 2025-04-14
-Genre    : Atmospheric
-Cat      : PLUSH120
-WWW      : https://about.plushrecs.com
+Artist   : Ishe
+Album    : In Circles EP
+Released : 2025-05-30
+Genre    : Atmospheric Drum & Bass
+Cat      : PLUSH121
+Bandcamp : https://plush.bandcamp.com
 
-Source  : WEB
-Encoder : LAME3.98r, FLAC 1.2.1, AAC reference quality
-Codec   : MP3, FLAC, AAC
-Bitrate : 320kbps, Lossless, VBR V0
-Tag     : ID3v2.3, 0.97, APEv2, VorbisComment
+Source  : LABELGRID
+Encoder : libmp3lame
+Codec   : MP3, FLAC, WAV
+Bitrate : 320kbps and Lossless
+Tag     : ID3v2.4
 
 Signed By: Plush Recordings
 
 Track List
 -----------
-1. Witchy & Wobble
-2. The Highest Point
+1. In Circles
+2. Auroras
+3. Right 4 U
 
 Description
 -----------
 
+**FOR IMMEDIATE RELEASE**
 
+**DJ ISHE Unveils Deep and Melancholic "In Circles EP" on May 30**
+
+Denver, CO – DJ ISHE, a prominent figure in the Denver music scene and a long-time veteran DJ, is set to release his latest project, "In Circles EP," on May 30 under catalog number PLUSH121 brings a blend of deep atmospheric sounds and emotionally charged vocal elements, 
+
+This latest offering from DJ ISHE delves into the depths of emotion with its melancholic undertones. The "In Circles EP" explores themes of introspection and emotional complexity through a seamless fusion of atmospheric soundscapes and haunting vocals. 
+
+The anticipated release of "In Circles EP" will be available across all major streaming platforms starting May 30. Listeners are encouraged to immerse themselves in this expressive collection that showcases DJ ISHE's mastery over mood-driven narratives within electronic music
 
 (c) Plush Recordings
 
 ==============================================================================
-.NFO file created with LabelGrid on 2025-02-26 08:54:20
+.NFO file created with LabelGrid on 2025-05-01 00:22:59
 For more information about LabelGrid go to https://labelgrid.com
 ==============================================================================
