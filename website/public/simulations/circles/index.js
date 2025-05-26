@@ -25,8 +25,8 @@ const CONFIG = {
         catalog: "PLUSH121",
         year: "2025",
         artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg", // Update with actual path
-        purchaseUrl: "https://plush.bandcamp.com/album/in-circles-ep",
-        buttonText: "GET THIS TRACK"
+        purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
+        buttonText: "GET THIS RELEASE"
     },
     // Fallback audio configuration (used when primary track finishes)
     fallbackAudioUrl: "https://azura.drmnbss.org:8010/radio.mp3",
@@ -342,8 +342,8 @@ function initializeUI() {
     // Set up controls toggle
     if (controlsToggle && controls) {
         // Initially hide controls and set button text
-        controls.style.display = 'block';
-        controlsToggle.textContent = '×';
+        controls.style.display = 'none';
+        controlsToggle.textContent = '+';
         
         controlsToggle.addEventListener('click', () => {
             const isVisible = controls.style.display === 'block';
