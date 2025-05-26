@@ -16,48 +16,6 @@ const CONFIG = {
     // Primary audio configuration - now an array of tracks to play in sequence
     tracks: [
         {
-            audioUrl: "https://cdn-stg-1.labelgrid.com/labels/plushrecs/320/1806ccbd-0108-43f1-8e3e-5336ee296dc9.mp3",
-            // Track-specific images
-            images: [
-                "right4u1.jpeg",
-                "right4u2.jpeg"
-            ],
-            trackInfo: {
-                title: "RIGHT 4 U",
-                artist: "ISHE",
-                catalog: "PLUSH121",
-                year: "2025",
-                artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg",
-                purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
-                buttonText: "GET THIS RELEASE"
-            },
-            // Whether to automatically show album info at specific timestamp
-            autoShowAlbumInfo: true,
-            // Minimum zoom level for this track (zoomed out)
-            minZoomLevel: 90
-        },
-        {
-            audioUrl: "https://cdn-stg-1.labelgrid.com/labels/plushrecs/320/b190e303-1ad1-4e71-81ff-eca4abcdc5dc.mp3",
-            // Track-specific images
-            images: [
-                "auroras3.png", 
-                "auroras2.png"
-            ],
-            trackInfo: {
-                title: "AURORAS",
-                artist: "ISHE",
-                catalog: "PLUSH121",
-                year: "2025",
-                artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg",
-                purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
-                buttonText: "GET THIS RELEASE"
-            },
-            // Whether to automatically show album info at specific timestamp
-            autoShowAlbumInfo: false,
-            // Minimum zoom level for this track (zoomed out)
-            minZoomLevel: 80
-        },
-        {
             audioUrl: "https://cdn-prod-1.labelgrid.com/labels/plushrecs/320/ca6494fa-405b-4828-a24f-97b9b84c2200.mp3",
             // Track-specific images
             images: [
@@ -98,7 +56,49 @@ const CONFIG = {
                 { id: "track1_lyric17", startTime: 186, endTime: 192, text: "Round and round.." },
                 { id: "track1_lyric18", startTime: 189, endTime: 192, text: "Up and down and round and round.." }
             ]
-        }
+        },
+        {
+            audioUrl: "https://cdn-stg-1.labelgrid.com/labels/plushrecs/320/b190e303-1ad1-4e71-81ff-eca4abcdc5dc.mp3",
+            // Track-specific images
+            images: [
+                "auroras3.png", 
+                "auroras2.png"
+            ],
+            trackInfo: {
+                title: "AURORAS",
+                artist: "ISHE",
+                catalog: "PLUSH121",
+                year: "2025",
+                artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg",
+                purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
+                buttonText: "GET THIS RELEASE"
+            },
+            // Whether to automatically show album info at specific timestamp
+            autoShowAlbumInfo: false,
+            // Minimum zoom level for this track (zoomed out)
+            minZoomLevel: 80
+        },
+        {
+            audioUrl: "https://cdn-stg-1.labelgrid.com/labels/plushrecs/320/1806ccbd-0108-43f1-8e3e-5336ee296dc9.mp3",
+            // Track-specific images
+            images: [
+                "right4u1.jpeg",
+                "right4u2.jpeg"
+            ],
+            trackInfo: {
+                title: "RIGHT 4 U",
+                artist: "ISHE",
+                catalog: "PLUSH121",
+                year: "2025",
+                artworkUrl: "../../cat/PLUSH121/PLUSH121.jpg",
+                purchaseUrl: "https://ln.promo.ly/l/I8dbCK-",
+                buttonText: "GET THIS RELEASE"
+            },
+            // Whether to automatically show album info at specific timestamp
+            autoShowAlbumInfo: true,
+            // Minimum zoom level for this track (zoomed out)
+            minZoomLevel: 90
+        },
     ],
     // Track to start with (0-based index)
     currentTrackIndex: 0,
