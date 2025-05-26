@@ -38,7 +38,7 @@
             <div class="controls">
                 <div class="zoom-control">
                     <label for="zoomSlider">ZOOM:</label>
-                    <input type="range" id="zoomSlider" min="50" max="350" value="77">
+                    <input type="range" id="zoomSlider" min="50" max="350" value="77" step="0.001">
                     <span id="zoomValue">77</span>
                 </div>
                 <div class="zoom-speed-control">
@@ -53,6 +53,9 @@
                 <div class="auto-zoom-control">
                     <label for="autoZoomToggle">AUTO ZOOM:</label>
                     <input type="checkbox" id="autoZoomToggle" checked>
+                </div>
+                <div class="controlled-zoom-control">
+                    <button id="startControlledZoomBtn" class="control-button">START ZOOM CYCLE</button>
                 </div>
             </div>
         </main>

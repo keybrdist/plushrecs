@@ -63,7 +63,17 @@ let showingAnnotation = false;
 let autoRotate = true;
 let autoZoom = true;
 let autoRotateSpeed = 0.003;
-let zoomDirection = 1; // 1 for zooming in, -1 for zooming out
+let zoomDirection = -1; // 1 for zooming in, -1 for zooming out
+
+// Controlled zoom settings
+let controlledZoomEnabled = false; // Will be set to true after audio starts
+let controlledZoomMin = 50; // Minimum zoom level (zoomed out)
+let controlledZoomMax = 140; // Maximum zoom level (zoomed in)
+let controlledZoomDuration = 12000; // 12 seconds for full transition from max to min (or min to max)
+let controlledZoomAnimationId = null; // Animation frame ID
+let controlledZoomStartTime = 0; // Animation start timestamp
+let controlledZoomStartValue = 0; // Starting zoom value for the animation
+let controlledZoomTargetValue = 0; // Target zoom value for the animation
 
 // Variables to track rotation and zoom state
 let lastFrameTime = 0;
@@ -86,21 +96,29 @@ function updateZoom() {
     
     const zoomValue = document.getElementById('zoomValue');
     
+    // Convert the value to a floating point number to handle fractional values
+    const sliderValue = parseFloat(zoomSlider.value);
+    
     // Enhanced zoom calculation for extended range (50-350)
     // When slider is at 50: camera is at 10 units away (minimum zoom)
     // When slider is at 150: camera is at 0 units away (original maximum zoom)
     // When slider is at 350: camera is at -20 units away (3x more zoom, inside the object)
     let zoom;
-    if (zoomSlider.value <= 150) {
-        zoom = 15 - (zoomSlider.value / 10); // Original formula for values 50-150
+    if (sliderValue <= 150) {
+        zoom = 15 - (sliderValue / 10); // Original formula for values 50-150
     } else {
         // For values 151-350, create a steeper curve to zoom in more dramatically
-        const extraZoom = zoomSlider.value - 150;
+        const extraZoom = sliderValue - 150;
         zoom = 0 - (extraZoom / 10); // Go into negative Z values for extreme close-ups
     }
     
+    // Apply the precise zoom value to the camera
     camera.position.setZ(zoom);
-    zoomValue.textContent = zoomSlider.value;
+    
+    // Update the display value with precision (if not already updated elsewhere)
+    if (zoomValue && zoomValue.textContent !== sliderValue.toString()) {
+        zoomValue.textContent = sliderValue.toFixed(3);
+    }
 }
 
 function updateZoomSpeedDisplay() {
@@ -111,7 +129,126 @@ function updateZoomSpeedDisplay() {
     zoomSpeedValue.textContent = zoomSpeedSlider.value;
 }
 
+// Function to start controlled smooth zoom pattern
+function startControlledZoom() {
+    console.log('Starting controlled smooth zoom pattern');
+    
+    // Get the zoom slider
+    const zoomSlider = document.getElementById('zoomSlider');
+    if (!zoomSlider) return;
+    
+    // Set to initial zoom level (max zoom in)
+    zoomSlider.value = controlledZoomMax;
+    updateZoom();
+    
+    // Set flag to enable controlled zoom
+    controlledZoomEnabled = true;
+    
+    // Initial direction is zooming out (from max to min)
+    zoomDirection = -1;
+    
+    // Set up initial animation values
+    controlledZoomStartValue = controlledZoomMax;
+    controlledZoomTargetValue = controlledZoomMin;
+    controlledZoomStartTime = performance.now();
+    
+    // Start the smooth animation
+    startSmoothZoomAnimation();
+    
+    // Update button text when starting
+    updateZoomCycleButtonText();
+}
+
+// Function to cancel controlled zoom animation
+function cancelControlledZoom() {
+    if (controlledZoomEnabled) {
+        console.log('Canceling controlled zoom animation');
+        controlledZoomEnabled = false;
+        if (controlledZoomAnimationId) {
+            cancelAnimationFrame(controlledZoomAnimationId);
+            controlledZoomAnimationId = null;
+        }
+        
+        // Update button text when canceling
+        updateZoomCycleButtonText();
+    }
+}
+
+// Function to update the zoom cycle button text
+function updateZoomCycleButtonText() {
+    const button = document.getElementById('startControlledZoomBtn');
+    if (button) {
+        button.textContent = controlledZoomEnabled ? 'STOP ZOOM CYCLE' : 'START ZOOM CYCLE';
+    }
+}
+
+// Function to animate zoom smoothly using requestAnimationFrame
+function startSmoothZoomAnimation() {
+    // Cancel any existing animation
+    if (controlledZoomAnimationId) {
+        cancelAnimationFrame(controlledZoomAnimationId);
+    }
+    
+    // Function to perform the animation
+    function animateZoom(timestamp) {
+        // Get elapsed time since animation start
+        const elapsed = timestamp - controlledZoomStartTime;
+        
+        // Calculate progress (0 to 1)
+        let progress = Math.min(elapsed / controlledZoomDuration, 1);
+        
+        // Use easing function for smoother motion (cubic ease-in-out)
+        progress = progress < 0.5 ? 4 * progress * progress * progress :
+                  1 - Math.pow(-2 * progress + 2, 3) / 2;
+        
+        // Calculate current zoom value
+        const newValue = controlledZoomStartValue + progress * (controlledZoomTargetValue - controlledZoomStartValue);
+        
+        // Update the zoom slider - use precise floating point values
+        const zoomSlider = document.getElementById('zoomSlider');
+        if (zoomSlider) {
+            // Set the value with 3 decimal precision (0.001)
+            zoomSlider.value = newValue.toFixed(3);
+            updateZoom();
+            
+            // Also update the displayed value with precision
+            const zoomValue = document.getElementById('zoomValue');
+            if (zoomValue) {
+                zoomValue.textContent = parseFloat(newValue.toFixed(3));
+            }
+        }
+        
+        // Check if animation is complete
+        if (progress >= 1) {
+            // Reverse the direction and set new start/target values
+            if (zoomDirection === -1) {
+                // We just reached min zoom, now zoom back in
+                zoomDirection = 1;
+                controlledZoomStartValue = controlledZoomMin;
+                controlledZoomTargetValue = controlledZoomMax;
+            } else {
+                // We just reached max zoom, now zoom back out
+                zoomDirection = -1;
+                controlledZoomStartValue = controlledZoomMax;
+                controlledZoomTargetValue = controlledZoomMin;
+            }
+            
+            // Reset animation start time
+            controlledZoomStartTime = performance.now();
+        }
+        
+        // Continue animation
+        controlledZoomAnimationId = requestAnimationFrame(animateZoom);
+    }
+    
+    // Start the animation
+    controlledZoomAnimationId = requestAnimationFrame(animateZoom);
+}
+// Function for auto-zoom handling
 function handleAutoZoom() {
+    // Skip if controlled zoom is enabled
+    if (controlledZoomEnabled) return;
+    
     // Don't auto-zoom if it's disabled or if manual zooming is active
     if (!autoZoom || manualZoomActive) return;
     
@@ -119,7 +256,7 @@ function handleAutoZoom() {
     const zoomSpeedSlider = document.getElementById('zoomSpeedSlider');
     if (!zoomSlider || !zoomSpeedSlider) return;
     
-    const currentValue = parseInt(zoomSlider.value);
+    const currentValue = parseFloat(zoomSlider.value);
     
     // Update boundaries to match the new slider range (50-350)
     if (currentValue >= 349) zoomDirection = -1; // Use 349 instead of 350 to avoid edge case
@@ -135,50 +272,8 @@ function handleAutoZoom() {
     }
     
     // Apply the zoom change gradually
-    zoomSlider.value = currentValue + (zoomDirection * zoomSpeed);
+    zoomSlider.value = (currentValue + (zoomDirection * zoomSpeed)).toFixed(3);
     updateZoom();
-}
-
-function setupEventListeners() {
-    // Controls toggle functionality
-    const controlsToggle = document.getElementById('controlsToggle');
-    const controlsPanel = document.querySelector('.controls');
-    
-    if (controlsToggle && controlsPanel) {
-        controlsToggle.addEventListener('click', () => {
-            const isVisible = controlsPanel.style.display === 'block';
-            controlsPanel.style.display = isVisible ? 'none' : 'block';
-            controlsToggle.textContent = isVisible ? '+' : '-';
-        });
-    }
-    
-    // Zoom controls
-    const zoomSlider = document.getElementById('zoomSlider');
-    const zoomSpeedSlider = document.getElementById('zoomSpeedSlider');
-    
-    if (zoomSlider) {
-        zoomSlider.addEventListener('input', updateZoom);
-    }
-    
-    if (zoomSpeedSlider) {
-        zoomSpeedSlider.addEventListener('input', updateZoomSpeedDisplay);
-    }
-    
-    // Auto-rotate control
-    const autoRotateToggle = document.getElementById('autoRotateToggle');
-    if (autoRotateToggle) {
-        autoRotateToggle.addEventListener('change', (e) => {
-            autoRotate = e.target.checked;
-        });
-    }
-    
-    // Auto-zoom control
-    const autoZoomToggle = document.getElementById('autoZoomToggle');
-    if (autoZoomToggle) {
-        autoZoomToggle.addEventListener('change', (e) => {
-            autoZoom = e.target.checked;
-        });
-    }
 }
 
 function initializeUI() {
@@ -187,32 +282,78 @@ function initializeUI() {
     
     // Set up the toggle button and controls panel
     const controlsToggle = document.getElementById('controlsToggle');
-    const controlsPanel = document.querySelector('.controls');
+    const controls = document.querySelector('.controls');
+    const startControlledZoomBtn = document.getElementById('startControlledZoomBtn');
     
-    if (controlsToggle && controlsPanel) {
+    // Set the canvas size to match the window
+    const resize = () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    };
+    
+    // Update the canvas size when the window is resized
+    window.addEventListener('resize', resize);
+    resize();
+    
+    // Set up zoom slider event listener
+    if (zoomSlider) {
+        zoomSlider.addEventListener('input', updateZoom);
+    }
+    
+    // Set up zoom speed slider event listener
+    if (zoomSpeedSlider) {
+        zoomSpeedSlider.addEventListener('input', updateZoomSpeedDisplay);
+    }
+    
+    // Set up auto-rotate toggle
+    if (autoRotateToggle) {
+        autoRotateToggle.addEventListener('change', () => {
+            autoRotate = autoRotateToggle.checked;
+        });
+    }
+    
+    // Set up auto-zoom toggle
+    if (autoZoomToggle) {
+        autoZoomToggle.addEventListener('change', () => {
+            autoZoom = autoZoomToggle.checked;
+        });
+    }
+    
+    // Set up controlled zoom button
+    if (startControlledZoomBtn) {
+        // Initialize button text
+        updateZoomCycleButtonText();
+        
+        startControlledZoomBtn.addEventListener('click', () => {
+            if (controlledZoomEnabled) {
+                // If zoom cycle is running, stop it
+                cancelControlledZoom();
+            } else {
+                // If zoom cycle is not running, start it
+                startControlledZoom();
+            }
+        });
+    }
+    
+    // Set up controls toggle
+    if (controlsToggle && controls) {
         // Initially hide controls and set button text
-        controlsPanel.style.display = 'none';
-        controlsToggle.textContent = '+';
+        controls.style.display = 'block';
+        controlsToggle.textContent = '×';
+        
+        controlsToggle.addEventListener('click', () => {
+            const isVisible = controls.style.display === 'block';
+            controls.style.display = isVisible ? 'none' : 'block';
+            controlsToggle.textContent = isVisible ? '+' : '×';
+        });
     }
     
     // Add info about mouse control temporarily disabling auto features
     const canvasContainer = document.getElementById('canvas-container');
-    canvasContainer.title = 'Mouse interaction temporarily pauses auto-zoom and rotation';
-    
-    // Setup resize handler
-    window.addEventListener('resize', () => {
-        const { clientWidth, clientHeight } = renderer.domElement;
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(clientWidth, clientHeight, false);
-        camera.aspect = clientWidth / clientHeight;
-        camera.updateProjectionMatrix();
-    });
-    
-    // Trigger initial resize
-    window.dispatchEvent(new Event('resize'));
-    
-    // Setup event listeners
-    setupEventListeners();
+    if (canvasContainer) {
+        canvasContainer.title = 'Mouse interaction temporarily pauses auto-zoom and rotation';
+    }
 }
 
 // Create the 3D scene
@@ -348,16 +489,16 @@ document.addEventListener('DOMContentLoaded', () => {
 // Setup event listeners for orbit controls
 // Track when interaction starts - only mark as rotating if it's not a wheel event
 controls.addEventListener('start', (event) => {
-    // Check if we've started a rotation (not zoom)
-    if (event.target.state !== -1) { // -1 is the state for zooming in OrbitControls
-        userRotating = true;
-    }
+    userRotating = true;
+    manualZoomActive = true; // Treat rotation control as manual zoom too
+    
+    // Cancel controlled zoom animation on manual rotation
+    cancelControlledZoom();
     
     // Save the current position before user interaction
     lastFrameTime = performance.now();
 });
 
-// Track when interaction ends
 controls.addEventListener('end', () => {
     userRotating = false;
     
@@ -369,6 +510,9 @@ controls.addEventListener('end', () => {
 renderer.domElement.addEventListener('wheel', (event) => {
     // Only mark zooming as active, but not rotation control
     manualZoomActive = true;
+    
+    // Cancel controlled zoom animation on manual wheel zoom
+    cancelControlledZoom();
     
     // Get the current zoom slider value
     const zoomSlider = document.getElementById('zoomSlider');
@@ -493,10 +637,10 @@ function initStreamAudio() {
         audioElement.src = CONFIG.audioUrl;
         
         // Try to play directly with the audio element first (simpler approach)
+        console.log('Starting audio playback...');
         audioElement.play()
             .then(() => {
-                console.log('Audio playback started with audio element');
-                // Create audio analyzer and connect to source
+                console.log('Audio playback started successfully!');
                 setupAudioAnalyzer(audioElement);
                 
                 // Show the ID avatar once audio is playing
@@ -518,6 +662,9 @@ function initStreamAudio() {
                 
                 // Mark audio as initialized
                 audioInitialized = true;
+                
+                // Start the controlled zoom pattern
+                startControlledZoom();
             })
             .catch(error => {
                 console.error('Audio element playback failed, trying video element fallback:', error);
@@ -550,6 +697,9 @@ function initStreamAudio() {
                             
                             // Mark audio as initialized
                             audioInitialized = true;
+                            
+                            // Start the controlled zoom pattern
+                            startControlledZoom();
                         })
                         .catch(videoError => {
                             console.error('Both audio and video playback failed:', videoError);
@@ -796,7 +946,7 @@ function toggleAnnotations() {
 function updateCredits(artist) {
     const creditsElement = document.getElementById('credits');
     if (creditsElement) {
-        creditsElement.textContent = `music ${artist} • gfx @ycwhk x @shoeboxdnb`;
+        creditsElement.textContent = `music ${artist} • gfx ycwhk x SHOEBOX`;
     }
 }
 

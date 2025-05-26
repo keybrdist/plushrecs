@@ -55,6 +55,7 @@ a {
     font-size: 12px;
     display: none; /* Hidden by default */
     transition: all 0.3s ease;
+    width: 226px;
 }
 
 .zoom-control,
@@ -62,6 +63,12 @@ a {
 .auto-rotate-control,
 .auto-zoom-control {
     margin-top: 10px;
+}
+
+.auto-zoom-control {
+    margin-top: 0px;
+    opacity: 0;
+    display:none;
 }
 
 .zoom-control label,
@@ -88,6 +95,30 @@ a {
     margin-left: 10px;
     transform: scale(1.5);
     cursor: pointer;
+}
+
+.controlled-zoom-control {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.control-button {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 6px 10px;
+    margin-top: 5px;
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.control-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
 }
 
 /* Controls toggle button */
