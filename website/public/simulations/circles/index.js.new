@@ -1,0 +1,240 @@
+import * as $ from '//unpkg.com/three@0.120.0/build/three.module.js'
+import { OrbitControls } from '//unpkg.com/three@0.120.0/examples/jsm/controls/OrbitControls.js'
+
+// ----
+// Configuration
+// ----
+const W = 10, H = 10, SW = W * 20, SH = H * 20;
+const IMG_URLS = [
+    "image3.jpeg",
+    "image2.jpeg",
+];
+
+// ----
+// Scene Setup
+// ----
+const renderer = new $.WebGLRenderer({ alpha: true });
+const scene = new $.Scene();
+const camera = new $.PerspectiveCamera(75, 2, .1, 100);
+const controls = new OrbitControls(camera, renderer.domElement);
+
+// Default settings
+let autoRotate = true;
+let autoZoom = true;
+let autoRotateSpeed = 0.01;
+let zoomDirection = 1; // 1 for zooming in, -1 for zooming out
+
+// Make meshes and geometry
+const g = new $.Group(); // Declare g here for global access
+
+// Functions for UI updates
+function updateZoom() {
+    const zoomSlider = document.getElementById('zoomSlider');
+    if (!zoomSlider) return;
+    
+    const zoomValue = document.getElementById('zoomValue');
+    const zoom = 15 - (zoomSlider.value / 10); // Convert slider value (50-150) to camera distance (10-1)
+    camera.position.setZ(zoom);
+    zoomValue.textContent = zoomSlider.value;
+}
+
+function updateZoomSpeedDisplay() {
+    const zoomSpeedSlider = document.getElementById('zoomSpeedSlider');
+    if (!zoomSpeedSlider) return;
+    
+    const zoomSpeedValue = document.getElementById('zoomSpeedValue');
+    zoomSpeedValue.textContent = zoomSpeedSlider.value;
+}
+
+function handleAutoZoom() {
+    if (!autoZoom) return;
+    
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomSpeedSlider = document.getElementById('zoomSpeedSlider');
+    if (!zoomSlider || !zoomSpeedSlider) return;
+    
+    const currentValue = parseInt(zoomSlider.value);
+    if (currentValue >= 150) zoomDirection = -1;
+    if (currentValue <= 50) zoomDirection = 1;
+    
+    const zoomSpeed = (zoomSpeedSlider.value / 100) * 0.2; // Scale 0-100 to 0-0.2
+    zoomSlider.value = currentValue + (zoomDirection * zoomSpeed);
+    updateZoom();
+}
+
+function setupEventListeners() {
+    // Controls toggle functionality
+    const controlsToggle = document.getElementById('controlsToggle');
+    const controlsPanel = document.querySelector('.controls');
+    
+    if (controlsToggle && controlsPanel) {
+        controlsToggle.addEventListener('click', () => {
+            const isVisible = controlsPanel.style.display === 'block';
+            controlsPanel.style.display = isVisible ? 'none' : 'block';
+            controlsToggle.textContent = isVisible ? 'SHOW CONTROLS' : 'HIDE CONTROLS';
+        });
+    }
+    
+    // Zoom controls
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomSpeedSlider = document.getElementById('zoomSpeedSlider');
+    
+    if (zoomSlider) {
+        zoomSlider.addEventListener('input', updateZoom);
+    }
+    
+    if (zoomSpeedSlider) {
+        zoomSpeedSlider.addEventListener('input', updateZoomSpeedDisplay);
+    }
+    
+    // Auto-rotate control
+    const autoRotateToggle = document.getElementById('autoRotateToggle');
+    if (autoRotateToggle) {
+        autoRotateToggle.addEventListener('change', (e) => {
+            autoRotate = e.target.checked;
+        });
+    }
+    
+    // Auto-zoom control
+    const autoZoomToggle = document.getElementById('autoZoomToggle');
+    if (autoZoomToggle) {
+        autoZoomToggle.addEventListener('change', (e) => {
+            autoZoom = e.target.checked;
+        });
+    }
+}
+
+function initializeUI() {
+    // Add renderer to page
+    document.body.prepend(renderer.domElement);
+    
+    // Set up the toggle button and controls panel
+    const controlsToggle = document.getElementById('controlsToggle');
+    const controlsPanel = document.querySelector('.controls');
+    
+    if (controlsToggle && controlsPanel) {
+        // Initially hide controls and set button text
+        controlsPanel.style.display = 'none';
+        controlsToggle.textContent = 'SHOW CONTROLS';
+    }
+    
+    // Setup resize handler
+    window.addEventListener('resize', () => {
+        const { clientWidth, clientHeight } = renderer.domElement;
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(clientWidth, clientHeight, false);
+        camera.aspect = clientWidth / clientHeight;
+        camera.updateProjectionMatrix();
+    });
+    
+    // Trigger initial resize
+    window.dispatchEvent(new Event('resize'));
+    
+    // Setup event listeners
+    setupEventListeners();
+}
+
+// Create the 3D scene
+function createScene() {
+    // Add lights
+    for (const { color, intensity, x, y, z } of [
+        { color: 'white', intensity: 1, x: -W, y: 0, z: 0 },
+        { color: 'white', intensity: 1, x: W, y: 0, z: 0 },
+    ]) {
+        const L = new $.SpotLight(color, intensity, W, Math.PI / 2, 0, 0);
+        L.position.set(x, y, z);
+        scene.add(L);
+    }
+    
+    // Create vertex data
+    const vs = [];
+    for (let i = 0, I = SH; i < I; ++i) {
+        vs[i] = [];
+        const nY = i / (I - 1);
+        for (let j = 0, J = SW; j < J; ++j) {
+            const nX = j / (J - 1);
+            vs[i][j] = {
+                uv: [nX, nY],
+                xyz: [(nX - 0.5) * W, (nY - 0.5) * H, (i + 1) % 2 * (j % 2) * 0.5 - 0.25]
+            };
+        }
+    }
+
+    // Make Geometry - 2 Sets
+    const geoms = [];
+    for (let k = 0; k <= 1; ++k) {
+        const geom = new $.BufferGeometry();
+        const N = ((SW - k) >> 1) * (SH - 1);
+        const pos = new Float32Array(N * 3 * 6); // six (x,y,z)
+        const uv = new Float32Array(N * 2 * 6); // six (u,v)
+        let n = 0;
+        for (let i = 0, I = SH - 1; i < I; ++i) {
+            for (let j = k, J = SW - 1; j < J; j += 2) {
+                let v = vs[i][j];
+                pos.set(v.xyz, n * 3);
+                uv.set(v.uv, n * 2);
+                ++n;
+                v = vs[i][j + 1];
+                pos.set(v.xyz, n * 3);
+                uv.set(v.uv, n * 2);
+                ++n;
+                v = vs[i + 1][j];
+                pos.set(v.xyz, n * 3);
+                uv.set(v.uv, n * 2);
+                ++n;
+                v = vs[i][j + 1];
+                pos.set(v.xyz, n * 3);
+                uv.set(v.uv, n * 2);
+                ++n;
+                v = vs[i + 1][j + 1];
+                pos.set(v.xyz, n * 3);
+                uv.set(v.uv, n * 2);
+                ++n;
+                v = vs[i + 1][j];
+                pos.set(v.xyz, n * 3);
+                uv.set(v.uv, n * 2);
+                ++n;
+            }
+        }
+        geom.setAttribute('position', new $.Float32BufferAttribute(pos, 3));
+        geom.setAttribute('uv', new $.Float32BufferAttribute(uv, 2));
+        geom.computeVertexNormals();
+        geoms.push(geom);
+    }
+
+    // Make Meshes
+    for (const [i, geom] of geoms.entries()) {
+        const map = new $.TextureLoader().load(IMG_URLS[i]);
+        const mat = new $.MeshLambertMaterial({ map, side: $.DoubleSide });
+        const mesh = new $.Mesh(geoms[i], mat);
+        g.add(mesh);
+    }
+    scene.add(g);
+}
+
+// ----
+// Initialize after DOM is loaded
+// ----
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize UI elements
+    initializeUI();
+    
+    // Create 3D scene
+    createScene();
+    
+    // Initialize display settings
+    updateZoom();
+    updateZoomSpeedDisplay();
+});
+
+// Setup animation loop
+renderer.setAnimationLoop(t => {
+    if (autoRotate) {
+        g.rotation.y += autoRotateSpeed;
+    }
+    if (autoZoom) {
+        handleAutoZoom();
+    }
+    renderer.render(scene, camera);
+    controls.update();
+});
