@@ -76,7 +76,7 @@ const CONFIG = {
             // Whether to automatically show album info at specific timestamp
             autoShowAlbumInfo: false,
             // Minimum zoom level for this track (zoomed out)
-            minZoomLevel: 80
+            minZoomLevel: 60
         },
         {
             audioUrl: "https://cdn-stg-1.labelgrid.com/labels/plushrecs/320/1806ccbd-0108-43f1-8e3e-5336ee296dc9.mp3",
@@ -98,7 +98,7 @@ const CONFIG = {
             autoShowAlbumInfo: true,
             // Minimum zoom level for this track (zoomed out)
             minZoomLevel: 90
-        },
+        }
     ],
     // Track to start with (0-based index)
     currentTrackIndex: 0,
@@ -111,7 +111,11 @@ const CONFIG = {
         year: "", // No specific year for the stream
         artworkUrl: "../starfield/images/atmospheric_dnb_sq.png",
         purchaseUrl: "https://youtube.com/dnbradio/live",
-        buttonText: "LISTEN ON YOUTUBE"
+        buttonText: "LISTEN ON YOUTUBE",
+        images: [
+            "plush1.jpg",
+            "plush2.jpg"
+        ]
     },
 };
 
@@ -521,8 +525,8 @@ function createScene() {
     updateSceneWithTrackImages();
 }
 
-// Update scene with the current track's images
-function updateSceneWithTrackImages() {
+// Update scene with the current track's images or fallback images if fallback is playing
+function updateSceneWithTrackImages(useCustomImages = null) {
     // Clear previous meshes
     if (sceneMeshes.length > 0) {
         sceneMeshes.forEach(mesh => {
@@ -531,16 +535,28 @@ function updateSceneWithTrackImages() {
         sceneMeshes = [];
     }
     
-    // Get current track images
-    const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
-    const images = currentTrack.images;
+    // Determine which images to use
+    let images;
+    
+    if (useCustomImages) {
+        // Use explicitly provided images
+        images = useCustomImages;
+    } else if (isPlayingFallback && CONFIG.fallbackTrackInfo.images && CONFIG.fallbackTrackInfo.images.length >= 2) {
+        // Use fallback images if fallback is playing
+        console.log('Using fallback track images:', CONFIG.fallbackTrackInfo.images);
+        images = CONFIG.fallbackTrackInfo.images;
+    } else {
+        // Default: Use current track images
+        const currentTrack = CONFIG.tracks[CONFIG.currentTrackIndex];
+        images = currentTrack.images;
+    }
     
     if (!images || images.length < 2) {
-        console.error('Current track does not have enough images');
+        console.error('Not enough images available for visualization');
         return;
     }
     
-    // Create new meshes with track-specific images
+    // Create new meshes with the selected images
     for (const [i, geom] of sceneGeoms.entries()) {
         if (i < images.length) {
             const map = new $.TextureLoader().load(images[i]);
@@ -1001,6 +1017,11 @@ function switchToFallbackAudio(forceFallback = false) {
         // Update UI with fallback info
         updateAnnotationContent(CONFIG.fallbackTrackInfo);
         
+        // Update scene with fallback track images
+        if (CONFIG.fallbackTrackInfo.images && CONFIG.fallbackTrackInfo.images.length >= 2) {
+            updateSceneWithTrackImages();
+        }
+        
         // Update status
         document.querySelector('.status').textContent = 'Connecting to stream: ' + CONFIG.fallbackTrackInfo.artist + ' - ' + CONFIG.fallbackTrackInfo.title;
         
@@ -1305,6 +1326,16 @@ function tryFallbackAudio(useFallback = false) {
         // Determine which audio source to use
         const audioUrl = useFallback ? CONFIG.fallbackAudioUrl : CONFIG.audioUrl;
         const trackInfo = useFallback ? CONFIG.fallbackTrackInfo : CONFIG.trackInfo;
+        
+        // If using fallback, set the flag and update the scene
+        if (useFallback) {
+            isPlayingFallback = true;
+            
+            // Update scene with fallback track images if available
+            if (CONFIG.fallbackTrackInfo.images && CONFIG.fallbackTrackInfo.images.length >= 2) {
+                updateSceneWithTrackImages();
+            }
+        }
         
         // Update status
         document.querySelector('.status').textContent = 'Connecting to audio...';
