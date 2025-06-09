@@ -294,6 +294,10 @@
             <div class="control-group">
                 <label for="backgroundColorPicker">Background Color:</label>
                 <input type="color" id="backgroundColorPicker" value="#000000">
+                <div style="margin-top: 5px;">
+                    <input type="checkbox" id="transparentBgCheckbox" style="margin-right: 5px;">
+                    <label for="transparentBgCheckbox" style="font-size: 0.9em;">Transparent Background</label>
+                </div>
             </div>
 
             <div class="control-group">
@@ -339,7 +343,8 @@
                     animationSpeed: 1.0,
                     effects: new Set(),
                     useOriginalColors: true,
-                    backgroundColor: '#000000'
+                    backgroundColor: '#000000',
+                    transparentBackground: false
                 };
 
                 this.charSets = {
@@ -432,7 +437,18 @@
                 const backgroundColorPicker = document.getElementById('backgroundColorPicker');
                 backgroundColorPicker.addEventListener('input', (e) => { // 'input' for live update
                     this.settings.backgroundColor = e.target.value;
-                    this.redrawCurrentMedia(); // Redraw to apply new background
+                    if (!this.settings.transparentBackground) { // Only redraw if transparency isn't active, to avoid conflicts
+                        this.redrawCurrentMedia(); // Redraw to apply new background
+                    }
+                });
+
+                const transparentBgCheckbox = document.getElementById('transparentBgCheckbox');
+                const backgroundColorPickerInput = document.getElementById('backgroundColorPicker'); // Get ref to the input itself
+                transparentBgCheckbox.addEventListener('change', (e) => {
+                    this.settings.transparentBackground = e.target.checked;
+                    backgroundColorPickerInput.disabled = this.settings.transparentBackground;
+                    backgroundColorPickerInput.style.opacity = this.settings.transparentBackground ? 0.5 : 1;
+                    this.redrawCurrentMedia();
                 });
 
                 const speedSlider = document.getElementById('speedSlider');
@@ -736,8 +752,12 @@
                                  settings, originalImageData, charSets, 
                                  startTime, shaderEffects, hexToRgbHelper) {
             
-            targetCtx.fillStyle = settings.backgroundColor;
-            targetCtx.fillRect(0, 0, canvasTotalWidth, canvasTotalHeight);
+            if (settings.transparentBackground) {
+                targetCtx.clearRect(0, 0, canvasTotalWidth, canvasTotalHeight);
+            } else {
+                targetCtx.fillStyle = settings.backgroundColor;
+                targetCtx.fillRect(0, 0, canvasTotalWidth, canvasTotalHeight);
+            }
             targetCtx.font = `${charCellHeight}px Courier New, monospace`;
 
             const data = originalImageData.data;
@@ -916,65 +936,15 @@
             }
 
             exportAsImage() {
-                if (!this.originalCanvas || !this.originalCanvas.width || !this.originalCanvas.height) {
-                    console.error("Export failed: Original image data not available.");
+                if (!this.asciiCanvas || !this.asciiCanvas.width || !this.asciiCanvas.height) {
+                    console.error("Export failed: ASCII canvas not available or has no dimensions.");
                     return;
                 }
 
-                const targetCanvasWidth = 3000;
-                const targetCanvasHeight = 3000;
-                const charCellWidth = 10;
-                const charCellHeight = 20;
-
-                const sourcePixelWidth = this.originalCanvas.width;
-                const sourcePixelHeight = this.originalCanvas.height;
-                const originalImageData = this.originalCtx.getImageData(0, 0, sourcePixelWidth, sourcePixelHeight);
-
-                // Calculate the aspect ratio of the desired ASCII grid content
-                // This should match the source image's aspect ratio, adjusted for character cell aspect ratio
-                const desiredGridAspect = (sourcePixelWidth / sourcePixelHeight) * (charCellHeight / charCellWidth);
-
-                let exportGridCols = Math.floor(targetCanvasWidth / charCellWidth);
-                let exportGridRows = Math.floor(exportGridCols / desiredGridAspect);
-
-                if (exportGridRows * charCellHeight > targetCanvasHeight) {
-                    exportGridRows = Math.floor(targetCanvasHeight / charCellHeight);
-                    exportGridCols = Math.floor(exportGridRows * desiredGridAspect);
-                }
-                
-                // Ensure we have at least 1x1 grid
-                exportGridCols = Math.max(1, exportGridCols);
-                exportGridRows = Math.max(1, exportGridRows);
-
-                const renderedBlockWidth = exportGridCols * charCellWidth;
-                const renderedBlockHeight = exportGridRows * charCellHeight;
-
-                const renderOffsetX = Math.floor((targetCanvasWidth - renderedBlockWidth) / 2);
-                const renderOffsetY = Math.floor((targetCanvasHeight - renderedBlockHeight) / 2);
-
-                const exportCanvas = document.createElement('canvas');
-                exportCanvas.width = targetCanvasWidth;
-                exportCanvas.height = targetCanvasHeight;
-                const exportCtx = exportCanvas.getContext('2d');
-
-                this._renderAsciiArtToContext(
-                    exportCtx,
-                    targetCanvasWidth, targetCanvasHeight,
-                    exportGridCols, exportGridRows,
-                    charCellWidth, charCellHeight,
-                    renderOffsetX, renderOffsetY,
-                    this.settings, 
-                    originalImageData,
-                    this.charSets,
-                    this.startTime, // Use current startTime for consistency with live view effects
-                    this.shaderEffects,
-                    this.hexToRgb // Pass the helper method reference
-                );
-
                 const link = document.createElement('a');
                 const randomString = Math.random().toString(36).substring(2, 8);
-                link.download = `ascii-art-3000x3000-${randomString}.png`;
-                link.href = exportCanvas.toDataURL('image/png');
+                link.download = `ascii-art-viewport-${this.asciiCanvas.width}x${this.asciiCanvas.height}-${randomString}.png`;
+                link.href = this.asciiCanvas.toDataURL('image/png');
                 link.click();
             }
 
