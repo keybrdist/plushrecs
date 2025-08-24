@@ -1,0 +1,260 @@
+
+body {
+    margin: 0;
+    /* padding: 20px; */
+    background: #000;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+    overflow-x: auto; /* Keep for very wide content, though less likely now */
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+    /* min-height: 100vh; Removed to allow sticky positioning to work correctly with body padding */
+    align-items: flex-start; /* Align items to the top */
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: calc(100vh - 40px); /* Ensure it can fill height */
+}
+
+.upload-area {
+    border: 2px dashed #0f0;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.upload-area:hover {
+    background: rgba(0, 255, 0, 0.1);
+    border-color: #4f4;
+}
+
+.upload-area.dragover {
+    background: rgba(0, 255, 0, 0.2);
+    border-color: #8f8;
+}
+
+.canvas-container {
+    position: relative;
+    border: 0px solid #0f0;
+    border-radius: 8px;
+    /* padding: 10px; */
+    background: #000;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; /* Allow canvas container to grow */
+}
+
+#originalCanvas, #asciiCanvas {
+    max-width: 100%;
+    max-height: calc(100vh - 100px); /* Ensure canvas doesn't overflow viewport too much */
+    border-radius: 4px;
+    object-fit: contain; /* Ensure image/video aspect ratio is maintained */
+    image-rendering: pixelated; /* Prevent blur when scaled */
+    -webkit-font-smoothing: none;
+}
+
+.controls {
+    width: 320px;
+    background: #111;
+    border: 2px solid #0f0;
+    border-radius: 8px;
+    padding: 20px;
+    /* height: fit-content; Removed */
+    max-height: calc(100vh - 40px); /* Account for body padding */
+    overflow-y: auto; /* Enable vertical scroll on controls */
+    position: sticky; /* Make controls sticky */
+    top: 20px; /* Stick to top, respecting body padding */
+}
+
+.control-group {
+    margin-bottom: 20px;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #0f0;
+    font-weight: bold;
+}
+
+.control-group input[type="range"] {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.control-group input[type="color"] {
+    width: 100%;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+}
+
+.control-group button {
+    background: #000;
+    color: #0f0;
+    border: 1px solid #0f0;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.control-group button:hover {
+    background: #0f0;
+    color: #000;
+}
+
+.control-group button.active {
+    background: #0f0;
+    color: #000;
+}
+
+.control-group button:disabled {
+    background: #333;
+    color: #777;
+    border-color: #555;
+    cursor: not-allowed;
+}
+
+/* NEW: Styles for the select dropdown */
+.control-group select {
+    width: 100%;
+    padding: 8px;
+    background: #222;
+    color: #0f0;
+    border: 1px solid #0f0;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 10px;
+}
+
+.control-group select:focus {
+    outline: none;
+    border-color: #4f4;
+    box-shadow: 0 0 5px #0f0;
+}
+
+.control-group select option {
+    background: #111;
+    color: #0f0;
+}
+
+
+.value-display {
+    color: #888;
+    font-size: 12px;
+}
+
+.title {
+    text-align: center;
+    color: #0f0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    text-shadow: 0 0 10px #0f0;
+}
+
+#fileInput {
+    display: none;
+}
+
+.preset-images {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.preset-image {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.preset-image:hover {
+    border-color: #4f4;
+    transform: scale(1.05);
+}
+
+.effect-preview {
+    font-size: 12px;
+    color: #888;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.canvas-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.canvas-tab {
+    padding: 8px 16px;
+    border: 1px solid #0f0;
+    background: #000;
+    color: #0f0;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
+}
+
+.canvas-tab.active {
+    background: #0f0;
+    color: #000;
+}
+
+.stats {
+    font-size: 12px;
+    color: #888;
+    margin-top: 10px;
+}
+
+.toggle-controls-btn {
+    position: fixed; /* Changed to fixed to stay relative to viewport */
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    background: rgb(20, 20, 20); /* Slightly lighter background */
+    color: #0f0; /* Green text for visibility */
+    border: 1px solid #0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 1001; /* Ensure it's above other elements */
+    opacity: 0.7; /* Slight transparency */
+    transition: opacity 0.3s ease;
+}
+.toggle-controls-btn:hover {
+    opacity: 1;
+}
+
+.controls.hidden {
+    /* display: none; Replaced with transform for potential animation */
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+    width: 0; /* Collapse width when hidden */
+    padding: 0;
+    border: none;
+    margin-right: -20px; /* Counteract gap when hidden */
+}
+.controls {
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, width 0.3s ease-in-out, padding 0.3s ease-in-out;
+}
