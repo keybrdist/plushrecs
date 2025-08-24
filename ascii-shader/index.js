@@ -317,6 +317,59 @@ class ASCIIConverter {
     this.redrawCurrentMedia();
   }
 
+
+
+
+  setupEffectButtons() {
+    // MODIFIED: Added 'lightShadow' to animation effect buttons
+    const effectButtons = [
+      "wave",
+      "pulse",
+      "scanline",
+      "glitch",
+      "lightShadow",
+    ];
+    effectButtons.forEach((effect) => {
+      const btn = document.getElementById(effect + "Btn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          this.toggleAnimationEffect(effect, btn);
+        });
+      }
+    });
+    const invertBtn = document.getElementById("invertBtn");
+    invertBtn.addEventListener("click", () => {
+      this.settings.inverted = !this.settings.inverted;
+      invertBtn.textContent = this.settings.inverted ? "On" : "Off";
+      invertBtn.classList.toggle("active", this.settings.inverted);
+      this.redrawCurrentMedia();
+    });
+  }
+
+  toggleAnimationEffect(effect, btn) {
+    const isActivating = !this.settings.effects.has(effect);
+
+    if (isActivating) {
+      this.settings.effects.add(effect);
+      btn.classList.add("active");
+    } else {
+      this.settings.effects.delete(effect);
+      btn.classList.remove("active");
+    }
+
+    if (this.currentImage || this.currentVideo) {
+      if (this.settings.effects.size > 0) {
+        this.startAnimationLoop();
+      } else if (this.animationFrameId) {
+        if (!this.currentVideo) {
+          cancelAnimationFrame(this.animationFrameId);
+          this.animationFrameId = null;
+        }
+      }
+    }
+    this.redrawCurrentMedia();
+  }
+
   updateUIForEffects() {
     const isHalftone = this.settings.effects.has("halftone");
     const isEdgeDetect = this.settings.effects.has("edgeDetect");
@@ -329,14 +382,13 @@ class ASCIIConverter {
   }
 
   clearMediaState() {
+    // Do not revoke currentBlobUrl here; it is revoked before loading new media to avoid premature deletion.
     if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
     if (this.currentVideo) {
       this.currentVideo.pause();
       this.currentVideo.removeAttribute("src");
       this.currentVideo.load();
       this.currentVideo.onloadedmetadata = null;
-      this.currentVideo.onplay = null;
-      this.currentVideo.onpause = null;
     }
     this.animationFrameId = null;
     this.currentVideo = null;
@@ -350,14 +402,21 @@ class ASCIIConverter {
   }
 
   handleFiles(files) {
+    // Revoke previous object URL before loading new file
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
+      this.currentBlobUrl = null;
+    }
     if (files.length > 0) {
       const file = files[0];
       const url = URL.createObjectURL(file);
+      // clear media state *before* storing new url so it isn't revoked immediately
       this.clearMediaState();
+      this.currentBlobUrl = url;
       if (file.type.startsWith("image/")) {
-        this.loadImageFromURL(url, () => URL.revokeObjectURL(url));
+        this.loadImageFromURL(url);
       } else if (file.type.startsWith("video/")) {
-        this.loadVideo(url, () => URL.revokeObjectURL(url));
+        this.loadVideo(url);
       } else {
         console.warn("Unsupported file type:", file.type);
         document.getElementById("effectPreview").textContent =
@@ -491,30 +550,9 @@ class ASCIIConverter {
       this.currentVideo.paused ||
       this.currentVideo.ended
     ) {
-      if (
-        this.currentVideo &&
-        (this.currentVideo.paused || this.currentVideo.ended) &&
-        this.settings.effects.size === 0
-      ) {
-        if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
-        this.animationFrameId = null;
-      }
-      // If effects are active, startAnimationLoop will handle static frame animation
-      if (
-        this.currentVideo &&
-        (this.currentVideo.paused || this.currentVideo.ended) &&
-        this.settings.effects.size > 0
-      ) {
-        this.startAnimationLoop();
-      }
       return;
     }
-    if (
-      this.originalCanvas.width !== this.currentVideo.videoWidth ||
-      this.originalCanvas.height !== this.currentVideo.videoHeight
-    ) {
-      this.displayOriginalVideoFrame();
-    }
+
     this.originalCtx.drawImage(
       this.currentVideo,
       0,
@@ -523,10 +561,9 @@ class ASCIIConverter {
       this.originalCanvas.height
     );
     this.convertToASCII();
-    this.animationFrameId = requestAnimationFrame(() =>
-      this.processVideoFrame()
-    );
+    this.animationFrameId = requestAnimationFrame(() => this.processVideoFrame());
   }
+
 
   startAnimationLoop() {
     if (this.animationFrameId && !this.currentVideo) {
