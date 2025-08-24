@@ -11,6 +11,8 @@ class ASCIIConverter {
       resolution: 80,
       contrast: 1.0,
       brightness: 0,
+      hue: 0,
+      saturation: 0,
       inverted: false,
       charSet: "simple",
       color: "#00ff00",
@@ -40,6 +42,12 @@ class ASCIIConverter {
     this.currentVideo = null;
     this.animationFrameId = null;
     this.startTime = Date.now();
+    
+    // Recording state
+    this.mediaRecorder = null;
+    this.recordedChunks = [];
+    this.isRecording = false;
+    this.recordingAnimationId = null;
 
     this.initializeEventListeners();
     // Hi-DPI scaling helpers
@@ -137,6 +145,16 @@ class ASCIIConverter {
           this.settings.brightness;
         this.redrawCurrentMedia();
       });
+    document.getElementById("hueSlider").addEventListener("input", (e) => {
+      this.settings.hue = parseInt(e.target.value);
+      document.getElementById("hueValue").textContent = `${this.settings.hue}°`;
+      this.redrawCurrentMedia();
+    });
+    document.getElementById("saturationSlider").addEventListener("input", (e) => {
+      this.settings.saturation = parseInt(e.target.value);
+      document.getElementById("saturationValue").textContent = this.settings.saturation;
+      this.redrawCurrentMedia();
+    });
     document.getElementById("colorPicker").addEventListener("input", (e) => {
       this.settings.color = e.target.value;
       this.redrawCurrentMedia();
@@ -227,6 +245,12 @@ class ASCIIConverter {
     document
       .getElementById("exportTextBtn")
       .addEventListener("click", () => this.exportAsText());
+    document
+      .getElementById("startRecordingBtn")
+      .addEventListener("click", () => this.startRecording());
+    document
+      .getElementById("stopRecordingBtn")
+      .addEventListener("click", () => this.stopRecording());
     const toggleControlsBtn = document.getElementById("toggleControlsBtn");
     const controlsPanel = document.querySelector(".controls");
     toggleControlsBtn.addEventListener("click", () => {
@@ -639,6 +663,80 @@ class ASCIIConverter {
     return { r: data[i], g: data[i + 1], b: data[i + 2] };
   }
 
+  // Convert RGB to HSL
+  _rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0; // achromatic
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  }
+
+  // Convert HSL to RGB
+  _hslToRgb(h, s, l) {
+    h /= 360;
+    s /= 100;
+    l /= 100;
+
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+
+    let r, g, b;
+
+    if (s === 0) {
+      r = g = b = l; // achromatic
+    } else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1/3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1/3);
+    }
+
+    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+  }
+
+  // Apply hue and saturation adjustments to a color
+  _adjustHueSaturation(r, g, b) {
+    if (this.settings.hue === 0 && this.settings.saturation === 0) {
+      return { r, g, b };
+    }
+
+    const hsl = this._rgbToHsl(r, g, b);
+    
+    // Adjust hue (wrap around 360 degrees)
+    hsl.h = (hsl.h + this.settings.hue + 360) % 360;
+    
+    // Adjust saturation (clamp between 0 and 100)
+    hsl.s = Math.max(0, Math.min(100, hsl.s + this.settings.saturation));
+    
+    return this._hslToRgb(hsl.h, hsl.s, hsl.l);
+  }
+
   convertToASCII() {
     if (
       !this.originalCanvas.width ||
@@ -777,8 +875,12 @@ class ASCIIConverter {
             1 * this._getPixelBrightness(data, srcW, sx + 1, sy + 1);
           brightness = Math.min(255, Math.sqrt(Gx * Gx + Gy * Gy));
           pixelColor = this._getPixelColor(data, srcW, sx, sy);
+          // Apply hue and saturation adjustments
+          pixelColor = this._adjustHueSaturation(pixelColor.r, pixelColor.g, pixelColor.b);
         } else {
           pixelColor = this._getPixelColor(data, srcW, sx, sy);
+          // Apply hue and saturation adjustments
+          pixelColor = this._adjustHueSaturation(pixelColor.r, pixelColor.g, pixelColor.b);
           brightness = (pixelColor.r + pixelColor.g + pixelColor.b) / 3;
         }
 
@@ -1210,6 +1312,193 @@ class ASCIIConverter {
         document.getElementById("effectPreview").textContent =
           "Failed to copy text.";
       });
+  }
+
+  startRecording() {
+    if (this.isRecording) {
+      return;
+    }
+
+    // Check if browser supports MediaRecorder
+    if (!window.MediaRecorder) {
+      alert("Recording is not supported in this browser.");
+      document.getElementById("recordingStatus").textContent = "Recording not supported";
+      return;
+    }
+
+    try {
+      // Store canvas stream reference for manual frame control
+      this.canvasStream = this.asciiCanvas.captureStream(); // No FPS limit - capture every frame
+      
+      // Check for WebM support with higher bitrate
+      const options = { 
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: 12000000 // Increased to 12 Mbps for better quality
+      };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'video/webm;codecs=vp8';
+        options.videoBitsPerSecond = 8000000; // 8 Mbps fallback
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options.mimeType = 'video/webm';
+          options.videoBitsPerSecond = 5000000; // 5 Mbps fallback
+        }
+      }
+
+      this.mediaRecorder = new MediaRecorder(this.canvasStream, options);
+      this.recordedChunks = [];
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.recordedChunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = () => {
+        this.saveRecording();
+      };
+
+      this.mediaRecorder.onerror = (event) => {
+        console.error("MediaRecorder error:", event.error);
+        this.updateRecordingUI(false);
+        document.getElementById("recordingStatus").textContent = "Recording error occurred";
+      };
+
+      this.mediaRecorder.start(16); // Collect data every 16ms (~60fps) for smoother recording
+      this.isRecording = true;
+      this.updateRecordingUI(true);
+      
+      // Force consistent animation loop during recording
+      this.startRecordingAnimationLoop();
+
+      document.getElementById("recordingStatus").textContent = "Recording in progress...";
+      
+    } catch (error) {
+      console.error("Failed to start recording:", error);
+      alert("Failed to start recording. Please try again.");
+      document.getElementById("recordingStatus").textContent = "Failed to start recording";
+    }
+  }
+
+  stopRecording() {
+    if (!this.isRecording || !this.mediaRecorder) {
+      return;
+    }
+
+    this.mediaRecorder.stop();
+    this.isRecording = false;
+    this.updateRecordingUI(false);
+    document.getElementById("recordingStatus").textContent = "Processing recording...";
+    
+    // Stop recording animation loop and return to normal animation
+    if (this.recordingAnimationId) {
+      cancelAnimationFrame(this.recordingAnimationId);
+      this.recordingAnimationId = null;
+    }
+    
+    // Clean up canvas stream reference
+    if (this.canvasStream) {
+      this.canvasStream = null;
+    }
+    
+    // Resume normal animation if effects are active
+    if (this.settings.effects.size > 0 && (this.currentImage || this.currentVideo)) {
+      this.startAnimationLoop();
+    }
+  }
+
+  saveRecording() {
+    if (this.recordedChunks.length === 0) {
+      document.getElementById("recordingStatus").textContent = "No data recorded";
+      return;
+    }
+
+    const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ascii-recording-${Date.now()}.webm`;
+    link.click();
+    
+    // Clean up
+    URL.revokeObjectURL(url);
+    this.recordedChunks = [];
+    this.mediaRecorder = null;
+    
+    document.getElementById("recordingStatus").textContent = "Recording saved successfully!";
+    document.getElementById("effectPreview").textContent = "Recording saved as WebM file.";
+    
+    // Clear status after 3 seconds
+    setTimeout(() => {
+      document.getElementById("recordingStatus").textContent = "";
+    }, 3000);
+  }
+
+  updateRecordingUI(isRecording) {
+    const startBtn = document.getElementById("startRecordingBtn");
+    const stopBtn = document.getElementById("stopRecordingBtn");
+    
+    startBtn.disabled = isRecording;
+    stopBtn.disabled = !isRecording;
+    
+    if (isRecording) {
+      startBtn.style.opacity = "0.5";
+      stopBtn.style.opacity = "1";
+    } else {
+      startBtn.style.opacity = "1";
+      stopBtn.style.opacity = "0.5";
+    }
+  }
+
+  startRecordingAnimationLoop() {
+    // Cancel any existing animation loops
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    if (this.recordingAnimationId) {
+      cancelAnimationFrame(this.recordingAnimationId);
+    }
+
+    // Use the existing canvas stream reference
+    // Force maximum frame rate with no timing restrictions
+    const recordingAnimate = () => {
+      if (!this.isRecording) {
+        return;
+      }
+
+      // Always redraw during recording to ensure smooth capture
+      if (this.currentVideo && !this.currentVideo.paused && !this.currentVideo.ended) {
+        this.originalCtx.drawImage(
+          this.currentVideo,
+          0,
+          0,
+          this.originalCanvas.width,
+          this.originalCanvas.height
+        );
+      } else if (this.currentImage) {
+        this.originalCtx.drawImage(
+          this.currentImage,
+          0,
+          0,
+          this.originalCanvas.width,
+          this.originalCanvas.height
+        );
+      }
+
+      this.convertToASCII();
+      
+      // Force canvas stream to capture this frame immediately
+      if (this.canvasStream && this.canvasStream.requestFrame) {
+        this.canvasStream.requestFrame();
+      }
+      
+      // Continue the recording loop at maximum speed
+      this.recordingAnimationId = requestAnimationFrame(recordingAnimate);
+    };
+
+    // Start the recording animation loop
+    this.recordingAnimationId = requestAnimationFrame(recordingAnimate);
   }
 }
 
