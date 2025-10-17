@@ -1,254 +1,43 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shader-Based ASCII Art Converter</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-        }
-
-        .container {
-            display: flex;
-            gap: 20px;
-            min-height: 100vh;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .upload-area {
-            border: 2px dashed #0f0;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(0, 255, 0, 0.05);
-        }
-
-        .upload-area:hover {
-            background: rgba(0, 255, 0, 0.1);
-            border-color: #4f4;
-        }
-
-        .upload-area.dragover {
-            background: rgba(0, 255, 0, 0.2);
-            border-color: #8f8;
-        }
-
-        .canvas-container {
-            position: relative;
-            border: 0px solid #0f0;
-            border-radius: 8px;
-            padding: 10px;
-            background: #000;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #originalCanvas, #asciiCanvas {
-            max-width: 100%;
-            border-radius: 4px;
-        }
-
-        .controls {
-            width: 320px;
-            background: #111;
-            border: 2px solid #0f0;
-            border-radius: 8px;
-            padding: 20px;
-            height: fit-content;
-        }
-
-        .control-group {
-            margin-bottom: 20px;
-        }
-
-        .control-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #0f0;
-            font-weight: bold;
-        }
-
-        .control-group input[type="range"] {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .control-group input[type="color"] {
-            width: 100%;
-            height: 30px;
-            border: none;
-            border-radius: 4px;
-        }
-
-        .control-group button {
-            background: #000;
-            color: #0f0;
-            border: 1px solid #0f0;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .control-group button:hover {
-            background: #0f0;
-            color: #000;
-        }
-
-        .control-group button.active {
-            background: #0f0;
-            color: #000;
-        }
-
-        .value-display {
-            color: #888;
-            font-size: 12px;
-        }
-
-        .title {
-            text-align: center;
-            color: #0f0;
-            margin-bottom: 20px;
-            font-size: 20px;
-            text-shadow: 0 0 10px #0f0;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        .preset-images {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .preset-image {
-            width: 60px;
-            height: 60px;
-            border: 1px solid #0f0;
-            border-radius: 4px;
-            cursor: pointer;
-            object-fit: cover;
-            transition: all 0.3s ease;
-        }
-
-        .preset-image:hover {
-            border-color: #4f4;
-            transform: scale(1.05);
-        }
-
-        .effect-preview {
-            font-size: 12px;
-            color: #888;
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        .canvas-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .canvas-tab {
-            padding: 8px 16px;
-            border: 1px solid #0f0;
-            background: #000;
-            color: #0f0;
-            cursor: pointer;
-            border-radius: 4px 4px 0 0;
-            transition: all 0.3s ease;
-        }
-
-        .canvas-tab.active {
-            background: #0f0;
-            color: #000;
-        }
-
-        .stats {
-            font-size: 12px;
-            color: #888;
-            margin-top: 10px;
-        }
-
-        .toggle-controls-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            background: rgb(11, 11, 11);
-            color: #000;
-            border: 0px solid #0f0;
-            border-radius: 4px;
-            cursor: pointer;
-            z-index: 10;
-            opacity: 0.5;
-        }
-
-        .controls.hidden {
-            display: none;
-        }
-
-    </style>
+    <title>Shader-Based Visualizer</title> <!-- Changed Title -->
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>    
     <div class="container">
         <button id="toggleControlsBtn" class="toggle-controls-btn">-</button>
         <div class="main-content">
-            <!-- Canvas Display -->
-            
             <div class="canvas-container">
                 <canvas id="asciiCanvas" style="display: block;"></canvas>
                 <canvas id="originalCanvas" style="display: none;"></canvas>
                 <div id="noImagePlaceholder" style="color: #888; text-align: center;">
-
+                     
                 </div>
             </div>
-
-            <div class="stats" id="stats">
-                
-            </div>
+            <div class="stats" id="stats"></div>
         </div>
         
         <div class="controls">
             <h3>🎛️ Conversion Settings</h3>
             
-            <!-- Upload Area -->
             <div class="upload-area" id="uploadArea">
                 <div style="font-size: 24px; margin-bottom: 10px;">📁</div>
                 <div>Drag & Drop Image/Video Here or Click to Upload</div>
                 <div style="font-size: 12px; color: #888;">(JPG, PNG, GIF, MP4)</div>
                 <input type="file" id="fileInput" accept="image/*,video/mp4">
                 
-                <!-- Preset Images -->
                 <div class="preset-images">
-                    <div class="preset-image" data-url="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23333' width='100' height='100'/%3E%3Ccircle fill='%23fff' cx='30' cy='30' r='20'/%3E%3Crect fill='%23fff' x='60' y='10' width='30' height='50'/%3E%3Cpolygon fill='%23fff' points='20,70 50,70 35,90'/%3E%3C/svg%3E" title="Test Pattern"></div>
+                    <div class="preset-image" data-url="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23333' width='100' height='100'/%3E%3Ccircle fill='%23fff' cx='30' cy='30' r='20'/%3E%3Crect fill='%23fff' x='60' y='10' width='30' height='50'/%3E%3Cpolygon fill='%23fff' points='20,70 50,70 35,90'/%3E%3C/svg%3E" title="Test Pattern"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23333' width='100' height='100'/%3E%3Ccircle fill='%23fff' cx='30' cy='30' r='20'/%3E%3Crect fill='%23fff' x='60' y='10' width='30' height='50'/%3E%3Cpolygon fill='%23fff' points='20,70 50,70 35,90'/%3E%3C/svg%3E" alt="Test Pattern" style="width:100%; height:100%; object-fit:cover;"></div>
                 </div>
             </div>
 
             <div class="canvas-tabs">
-                <div class="canvas-tab active" data-tab="ascii">ASCII Output</div>
-                <div class="canvas-tab" data-tab="original">Original Image</div>
+                <div class="canvas-tab active" data-tab="ascii">Visualizer Output</div>
+                <div class="canvas-tab" data-tab="original">Original</div>
             </div>
             
             <div class="control-group">
@@ -264,6 +53,14 @@
             </div>
             
             <div class="control-group">
+                <label>Aspect Ratio</label>
+                <select id="aspectRatioSelect">
+                    <option value="0.5">0.5 (Tall characters)</option>
+                    <option value="1">1.0 (Square)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
                 <label>Contrast: <span class="value-display" id="contrastValue">1.0</span></label>
                 <input type="range" id="contrastSlider" min="0.5" max="3" value="1" step="0.1">
             </div>
@@ -271,6 +68,16 @@
             <div class="control-group">
                 <label>Brightness: <span class="value-display" id="brightnessValue">0</span></label>
                 <input type="range" id="brightnessSlider" min="-50" max="50" value="0" step="5">
+            </div>
+
+            <div class="control-group">
+                <label>Hue: <span class="value-display" id="hueValue">0°</span></label>
+                <input type="range" id="hueSlider" min="-180" max="180" value="0" step="5">
+            </div>
+
+            <div class="control-group">
+                <label>Saturation: <span class="value-display" id="saturationValue">0</span></label>
+                <input type="range" id="saturationSlider" min="-100" max="100" value="0" step="5">
             </div>
 
             <div class="control-group">
@@ -287,8 +94,6 @@
                     <input type="checkbox" id="useOriginalColorsCheckbox" style="margin-right: 5px;" checked>
                     <label for="useOriginalColorsCheckbox" style="font-size: 0.9em;">Use Original Colors</label>
                 </div>
-                <button id="monochromeBtn" class="effect-btn">Monochrome</button>
-                <button id="gradientBtn" class="effect-btn">Gradient</button>
             </div>
 
             <div class="control-group">
@@ -301,12 +106,25 @@
             </div>
 
             <div class="control-group">
+                <label>Visual Style Presets</label>
+                <select id="visualStylePresetSelect">
+                    <option value="none">None</option>
+                    <option value="halftone">Halftone</option>
+                    <option value="edgeDetect">Edge Detect</option>
+                    <option value="crt">CRT</option>
+                    <option value="kaleidoscope">Kaleidoscope</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
                 <label>Animation Effects</label>
                 <button id="waveBtn" class="effect-btn">Wave</button>
                 <button id="pulseBtn" class="effect-btn">Pulse</button>
                 <button id="scanlineBtn" class="effect-btn">Scanlines</button>
                 <button id="glitchBtn" class="effect-btn">Glitch</button>
+                <button id="lightShadowBtn" class="effect-btn">Light &amp; Shadow</button> <!-- NEW BUTTON -->
             </div>
+
 
             <div class="control-group">
                 <label>Animation Speed: <span class="value-display" id="speedValue">1.0</span></label>
@@ -319,691 +137,19 @@
                 <button id="exportTextBtn">📄 Copy as Text</button>
             </div>
 
+            <div class="control-group">
+                <label>Recording</label>
+                <button id="startRecordingBtn">🔴 Start Recording</button>
+                <button id="stopRecordingBtn" disabled>⏹️ Stop Recording</button>
+                <div id="recordingStatus" style="font-size: 0.9em; margin-top: 5px; color: #888;"></div>
+            </div>
+
             <div class="effect-preview" id="effectPreview">
-                Ready for ASCII conversion
+                Ready for visualization
             </div>
         </div>
     </div>
 
-    <script>
-        class ASCIIConverter {
-            constructor() {
-                this.originalCanvas = document.getElementById('originalCanvas');
-                this.asciiCanvas = document.getElementById('asciiCanvas');
-                this.originalCtx = this.originalCanvas.getContext('2d', { willReadFrequently: true });
-                this.asciiCtx = this.asciiCanvas.getContext('2d');
-                
-                this.settings = {
-                    resolution: 200,
-                    contrast: 1.0,
-                    brightness: 0,
-                    inverted: false,
-                    charSet: 'simple',
-                    color: '#00ff00',
-                    animationSpeed: 1.0,
-                    effects: new Set(),
-                    useOriginalColors: true,
-                    backgroundColor: '#000000',
-                    transparentBackground: false
-                };
-
-                this.charSets = {
-                    simple: ' .:-=+*#%@',
-                    complex: ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
-                    custom: ' ░▒▓█'
-                };
-
-                this.currentImage = null;
-                this.currentVideo = null;
-                this.animationFrameId = null;
-                this.animationFrame = null; // Seems redundant if animationFrameId is used for requestAnimationFrame
-                this.startTime = Date.now();
-
-                this.initializeEventListeners();
-                this.setupShaders();
-                document.getElementById('charSetSimple').classList.add('active'); // Set default active char set button
-            }
-
-            initializeEventListeners() {
-                const uploadArea = document.getElementById('uploadArea');
-                const fileInput = document.getElementById('fileInput');
-
-                uploadArea.addEventListener('click', () => fileInput.click());
-                uploadArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadArea.classList.add('dragover');
-                });
-                uploadArea.addEventListener('dragleave', () => {
-                    uploadArea.classList.remove('dragover');
-                });
-                uploadArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadArea.classList.remove('dragover');
-                    this.handleFiles(e.dataTransfer.files);
-                });
-
-                fileInput.addEventListener('change', (e) => {
-                    this.handleFiles(e.target.files);
-                });
-
-                document.querySelectorAll('.preset-image').forEach(img => {
-                    img.addEventListener('click', () => {
-                        this.loadImageFromURL(img.dataset.url);
-                    });
-                });
-
-                document.querySelectorAll('.canvas-tab').forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        this.switchTab(tab.dataset.tab);
-                    });
-                });
-                this.setupControlListeners();
-            }
-
-            setupControlListeners() {
-                const resolutionSlider = document.getElementById('resolutionSlider');
-                resolutionSlider.addEventListener('input', (e) => {
-                    this.settings.resolution = parseInt(e.target.value);
-                    document.getElementById('resolutionValue').textContent = `${this.settings.resolution}x${Math.floor(this.settings.resolution * 0.75)}`;
-                    this.redrawCurrentMedia();
-                });
-
-                const contrastSlider = document.getElementById('contrastSlider');
-                contrastSlider.addEventListener('input', (e) => {
-                    this.settings.contrast = parseFloat(e.target.value);
-                    document.getElementById('contrastValue').textContent = this.settings.contrast.toFixed(1);
-                    this.redrawCurrentMedia();
-                });
-
-                const brightnessSlider = document.getElementById('brightnessSlider');
-                brightnessSlider.addEventListener('input', (e) => {
-                    this.settings.brightness = parseInt(e.target.value);
-                    document.getElementById('brightnessValue').textContent = this.settings.brightness;
-                    this.redrawCurrentMedia();
-                });
-
-                const colorPicker = document.getElementById('colorPicker');
-                colorPicker.addEventListener('input', (e) => { // Use input for live update
-                    this.settings.color = e.target.value;
-                    this.redrawCurrentMedia();
-                });
-
-                const useOriginalColorsCheckbox = document.getElementById('useOriginalColorsCheckbox');
-                useOriginalColorsCheckbox.addEventListener('change', (e) => {
-                    this.settings.useOriginalColors = e.target.checked;
-                    this.redrawCurrentMedia();
-                });
-
-                const backgroundColorPicker = document.getElementById('backgroundColorPicker');
-                backgroundColorPicker.addEventListener('input', (e) => { // 'input' for live update
-                    this.settings.backgroundColor = e.target.value;
-                    if (!this.settings.transparentBackground) { // Only redraw if transparency isn't active, to avoid conflicts
-                        this.redrawCurrentMedia(); // Redraw to apply new background
-                    }
-                });
-
-                const transparentBgCheckbox = document.getElementById('transparentBgCheckbox');
-                const backgroundColorPickerInput = document.getElementById('backgroundColorPicker'); // Get ref to the input itself
-                transparentBgCheckbox.addEventListener('change', (e) => {
-                    this.settings.transparentBackground = e.target.checked;
-                    backgroundColorPickerInput.disabled = this.settings.transparentBackground;
-                    backgroundColorPickerInput.style.opacity = this.settings.transparentBackground ? 0.5 : 1;
-                    this.redrawCurrentMedia();
-                });
-
-                const speedSlider = document.getElementById('speedSlider');
-                speedSlider.addEventListener('input', (e) => {
-                    this.settings.animationSpeed = parseFloat(e.target.value);
-                    document.getElementById('speedValue').textContent = this.settings.animationSpeed.toFixed(1);
-                    // No direct redraw, speed affects animation loop
-                });
-
-                document.querySelectorAll('.char-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                        this.settings.charSet = btn.id.replace('charSet', '').toLowerCase();
-                        this.redrawCurrentMedia();
-                    });
-                });
-
-                this.setupEffectButtons();
-
-                document.getElementById('exportImageBtn').addEventListener('click', () => this.exportAsImage());
-                document.getElementById('exportTextBtn').addEventListener('click', () => this.exportAsText());
-
-                const toggleControlsBtn = document.getElementById('toggleControlsBtn');
-                const controlsPanel = document.querySelector('.controls');
-                const container = document.querySelector('.container'); // To adjust main content if needed
-
-                toggleControlsBtn.addEventListener('click', () => {
-                    controlsPanel.classList.toggle('hidden');
-                    container.classList.toggle('controls-hidden'); // For potential main content adjustments
-                    if (controlsPanel.classList.contains('hidden')) {
-                        toggleControlsBtn.textContent = '+';
-                    } else {
-                        toggleControlsBtn.textContent = '-';
-                    }
-                });
-            }
-
-            redrawCurrentMedia(){
-                if (this.currentImage) {
-                    this.convertToASCII();
-                } else if (this.currentVideo && !this.currentVideo.paused) {
-                    // For video, convertToASCII is called in processVideoFrame
-                    // but if a setting changes, we might want an immediate update
-                    // For simplicity, we'll let the loop handle it, or force one frame:
-                    this.originalCtx.drawImage(this.currentVideo, 0, 0, this.originalCanvas.width, this.originalCanvas.height);
-                    this.convertToASCII();
-                }
-            }
-
-            setupEffectButtons() {
-                const effectButtons = ['wave', 'pulse', 'scanline', 'glitch', 'monochrome', 'gradient'];
-                effectButtons.forEach(effect => {
-                    const btn = document.getElementById(effect + 'Btn');
-                    if (btn) {
-                        btn.addEventListener('click', () => {
-                            if (this.settings.effects.has(effect)) {
-                                this.settings.effects.delete(effect);
-                                btn.classList.remove('active');
-                            } else {
-                                this.settings.effects.add(effect);
-                                btn.classList.add('active');
-                            }
-                            if (!this.currentVideo) { // Only start animation if not a video (video has its own loop)
-                               this.startAnimation();
-                            }
-                        });
-                    }
-                });
-
-                const invertBtn = document.getElementById('invertBtn');
-                invertBtn.addEventListener('click', () => {
-                    this.settings.inverted = !this.settings.inverted;
-                    invertBtn.textContent = this.settings.inverted ? 'On' : 'Off';
-                    invertBtn.classList.toggle('active', this.settings.inverted);
-                    this.redrawCurrentMedia();
-                });
-            }
-
-            setupShaders() {
-                this.shaderEffects = {
-                    wave: (x, y, time) => ({
-                        offsetX: Math.sin(y * 0.1 + time * 0.002 * this.settings.animationSpeed) * 2,
-                        offsetY: Math.cos(x * 0.1 + time * 0.003 * this.settings.animationSpeed) * 1
-                    }),
-                    pulse: (x, y, time) => ({
-                        scale: 1 + Math.sin(time * 0.005 * this.settings.animationSpeed) * 0.1,
-                        brightness: 1 + Math.sin(time * 0.003 * this.settings.animationSpeed) * 0.2
-                    }),
-                    glitch: (x, y, time) => ({
-                        offsetX: Math.random() > 0.95 ? (Math.random() - 0.5) * 10 : 0,
-                        offsetY: Math.random() > 0.99 ? (Math.random() - 0.5) * 5 : 0,
-                        colorShift: Math.random() > 0.98
-                    })
-                };
-            }
-
-            clearMediaState() {
-                if (this.animationFrameId) {
-                    cancelAnimationFrame(this.animationFrameId);
-                    this.animationFrameId = null;
-                }
-                if (this.currentVideo) {
-                    this.currentVideo.pause();
-                    this.currentVideo.removeAttribute('src'); // Clean up src
-                    this.currentVideo.load(); // Stop download and free resources
-                    // Consider removing the video element if it was added to DOM, though not in this impl.
-                    this.currentVideo = null;
-                }
-                this.currentImage = null;
-                // Reset canvases if needed, or clear them
-                // this.originalCtx.clearRect(0, 0, this.originalCanvas.width, this.originalCanvas.height);
-                // this.asciiCtx.clearRect(0, 0, this.asciiCanvas.width, this.asciiCanvas.height);
-                // document.getElementById('noImagePlaceholder').style.display = 'block';
-            }
-
-            handleFiles(files) {
-                this.clearMediaState(); // Clear previous media first
-                if (files.length > 0) {
-                    const file = files[0];
-                    const url = URL.createObjectURL(file);
-
-        if (file.type.startsWith('image/')) {
-                        this.loadImageFromURL(url);
-                    } else if (file.type.startsWith('video/')) {
-                        this.loadVideo(url);
-                    } else {
-                        console.warn('Unsupported file type:', file.type);
-                        document.getElementById('noImagePlaceholder').textContent = 'Unsupported file type. Please use JPG, PNG, GIF, or MP4.';
-                        document.getElementById('noImagePlaceholder').style.display = 'block';
-                        URL.revokeObjectURL(url); // Clean up object URL if not used
-                    }
-                } else {
-                     document.getElementById('noImagePlaceholder').textContent = 'Load an image or video to begin.';
-                     document.getElementById('noImagePlaceholder').style.display = 'block';
-                }
-            }
-
-            loadImageFromURL(url) {
-                this.clearMediaState();
-                const img = new Image();
-                img.onload = () => {
-                    this.currentImage = img;
-                    this.currentVideo = null; // Ensure video is null
-                    this.displayOriginalImage();
-                    this.convertToASCII();
-                    document.getElementById('noImagePlaceholder').style.display = 'none';
-                    this.updateStats();
-                    if (this.settings.effects.size > 0) {
-                        this.startAnimation(); // Restart animation for static image effects
-                    }
-                    URL.revokeObjectURL(url); // Clean up object URL after loading
-                };
-                img.onerror = () => {
-                    console.error('Error loading image.');
-                    document.getElementById('noImagePlaceholder').textContent = 'Error loading image. Please try another file.';
-                    document.getElementById('noImagePlaceholder').style.display = 'block';
-                    this.currentImage = null;
-                    URL.revokeObjectURL(url);
-                };
-                img.src = url;
-            }
-
-            loadVideo(url) {
-                this.clearMediaState();
-                const video = document.createElement('video');
-                video.setAttribute('playsinline', '');
-                video.autoplay = true;
-                video.muted = true;
-                video.loop = true;
-
-                this.currentVideo = video;
-                this.currentImage = null;
-
-                video.onloadedmetadata = () => {
-        video.play().catch(e => console.error("Video play() failed:", e));
-                    this.displayOriginalVideoFrame();
-                    this.processVideoFrame(); 
-                    document.getElementById('noImagePlaceholder').style.display = 'none';
-                    this.updateStats();
-                    // URL.revokeObjectURL(url); // Revoke later, after video is done or new one loaded
-                };
-                video.onerror = () => {
-                    console.error('Error loading video.');
-                    document.getElementById('noImagePlaceholder').textContent = 'Error loading video. Please try another file.';
-                    document.getElementById('noImagePlaceholder').style.display = 'block';
-                    this.currentVideo = null;
-                    URL.revokeObjectURL(url); // Clean up if error
-                };
-                video.onended = () => {
-                     URL.revokeObjectURL(url); // Clean up when video naturally ends (if not looping)
-                };
-                video.src = url;
-            }
-
-            displayOriginalImage() {
-                if (!this.currentImage) return;
-                const maxWidth = 800; // Max width for original display area
-                const maxHeight = 600;
-                let { width, height } = this.currentImage;
-
-                if (width > maxWidth) {
-                    height = (maxWidth / width) * height;
-                    width = maxWidth;
-                }
-                if (height > maxHeight) {
-                    width = (maxHeight / height) * width;
-                    height = maxHeight;
-                }
-                this.originalCanvas.width = width;
-                this.originalCanvas.height = height;
-                this.originalCtx.drawImage(this.currentImage, 0, 0, width, height);
-            }
-
-            displayOriginalVideoFrame() {
-                if (!this.currentVideo) return;
-                const aspectRatio = this.currentVideo.videoWidth / this.currentVideo.videoHeight;
-                
-                // Attempt to fit video into the same constraints as images if possible
-                const maxWidth = 800;
-                const maxHeight = 600;
-                let canvasWidth = this.currentVideo.videoWidth;
-                let canvasHeight = this.currentVideo.videoHeight;
-
-                if (canvasWidth > maxWidth) {
-                    canvasHeight = (maxWidth / canvasWidth) * canvasHeight;
-                    canvasWidth = maxWidth;
-                }
-                if (canvasHeight > maxHeight) {
-                    canvasWidth = (maxHeight / canvasHeight) * canvasWidth;
-                    canvasHeight = maxHeight;
-                }
-
-                this.originalCanvas.width = canvasWidth;
-                this.originalCanvas.height = canvasHeight;
-                this.originalCtx.drawImage(this.currentVideo, 0, 0, this.originalCanvas.width, this.originalCanvas.height);
-            }
-
-            processVideoFrame() {
-                if (!this.currentVideo || this.currentVideo.paused || this.currentVideo.ended) {
-                    if (this.animationFrameId) {
-                        cancelAnimationFrame(this.animationFrameId);
-                        this.animationFrameId = null;
-                    }
-                    return;
-                }
-                this.originalCtx.drawImage(this.currentVideo, 0, 0, this.originalCanvas.width, this.originalCanvas.height);
-                this.convertToASCII();
-                this.animationFrameId = requestAnimationFrame(() => this.processVideoFrame());
-            }
-
-            convertToASCII() {
-                if (!this.originalCanvas.width || !this.originalCanvas.height) return;
-
-                const originalImageData = this.originalCtx.getImageData(0, 0, this.originalCanvas.width, this.originalCanvas.height);
-
-                // For on-screen display
-                const displayAsciiWidth = this.settings.resolution;
-                // The 0.5 factor accounts for typical character cell aspect ratio (e.g., 10px wide by 20px tall)
-                const displayAsciiHeight = Math.floor(displayAsciiWidth * (this.originalCanvas.height / this.originalCanvas.width) * 0.5);
-                
-                const charCellWidth = 10;
-                const charCellHeight = 20;
-
-                this.asciiCanvas.width = displayAsciiWidth * charCellWidth;
-                this.asciiCanvas.height = displayAsciiHeight * charCellHeight;
-
-                // Call the generalized rendering method for the on-screen canvas
-                this._renderAsciiArtToContext(
-                    this.asciiCtx, // Target context for on-screen display
-                    this.asciiCanvas.width, 
-                    this.asciiCanvas.height,
-                    displayAsciiWidth, 
-                    displayAsciiHeight,
-                    charCellWidth, 
-                    charCellHeight,
-                    0, // renderOffsetX for on-screen (no offset)
-                    0, // renderOffsetY for on-screen (no offset)
-                    this.settings, // Pass current settings object
-                    originalImageData, // Source image data from originalCanvas
-                    this.charSets, // Available character sets
-                    this.startTime, // For animation timing within the helper
-                    this.shaderEffects, // Shader effects object
-                    this.hexToRgb // Pass the hexToRgb helper function reference
-                );
-
-                // Calculate effectTime for post-processing effects that might need it
-                // Note: _renderAsciiArtToContext also calculates its internal effectTime based on startTime.
-                // This one is specifically for applyPostProcessingEffects if it has time-dependent logic.
-                const currentTime = Date.now();
-                const effectTime = (currentTime - this.startTime) * this.settings.animationSpeed;
-
-                this.applyPostProcessingEffects(effectTime);
-                this.updateStats();
-            }
-
-            _renderAsciiArtToContext(targetCtx, canvasTotalWidth, canvasTotalHeight, 
-                                 asciiGridWidth, asciiGridHeight, 
-                                 charCellWidth, charCellHeight, 
-                                 renderOffsetX, renderOffsetY, 
-                                 settings, originalImageData, charSets, 
-                                 startTime, shaderEffects, hexToRgbHelper) {
-            
-            if (settings.transparentBackground) {
-                targetCtx.clearRect(0, 0, canvasTotalWidth, canvasTotalHeight);
-            } else {
-                targetCtx.fillStyle = settings.backgroundColor;
-                targetCtx.fillRect(0, 0, canvasTotalWidth, canvasTotalHeight);
-            }
-            targetCtx.font = `${charCellHeight}px Courier New, monospace`;
-
-            const data = originalImageData.data;
-            const sourceImageWidth = originalImageData.width;
-            const sourceImageHeight = originalImageData.height;
-            const currentCharset = charSets[settings.charSet] || charSets.simple;
-            const charBaselineOffset = charCellHeight * 0.85; // Approximation for baseline
-
-            let currentTime = Date.now();
-            let effectTime = (currentTime - startTime) * settings.animationSpeed;
-
-            for (let y = 0; y < asciiGridHeight; y++) {
-                for (let x = 0; x < asciiGridWidth; x++) {
-                    const sourceSampleX = Math.floor(x * (sourceImageWidth / asciiGridWidth));
-                    const sourceSampleY = Math.floor(y * (sourceImageHeight / asciiGridHeight));
-                    const pixelIndex = (sourceSampleY * sourceImageWidth + sourceSampleX) * 4;
-                    
-                    let r = data[pixelIndex];
-                    let g = data[pixelIndex + 1];
-                    let b = data[pixelIndex + 2];
-
-                    // Apply contrast and brightness from settings
-                    r = (r - 128) * settings.contrast + 128 + settings.brightness;
-                    g = (g - 128) * settings.contrast + 128 + settings.brightness;
-                    b = (b - 128) * settings.contrast + 128 + settings.brightness;
-                    r = Math.max(0, Math.min(255, r));
-                    g = Math.max(0, Math.min(255, g));
-                    b = Math.max(0, Math.min(255, b));
-
-                    let avg = (r + g + b) / 3;
-                    let brightnessForChar = avg;
-                    if (settings.inverted) { // Inversion for character selection
-                        brightnessForChar = 255 - avg;
-                    }
-                    
-                    const charIndex = Math.floor((brightnessForChar / 255) * (currentCharset.length - 1));
-                    const char = currentCharset[charIndex];
-                    
-                    let charFillColor;
-                    if (settings.useOriginalColors) {
-                        if (settings.inverted) { // Inversion for color output
-                            charFillColor = `rgb(${255 - Math.floor(r)}, ${255 - Math.floor(g)}, ${255 - Math.floor(b)})`;
-                        } else {
-                            charFillColor = `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
-                        }
-                    } else { 
-                        charFillColor = settings.color; 
-                        if (settings.inverted) { // Inversion for color output
-                            const rgbColor = hexToRgbHelper(charFillColor);
-                            if (rgbColor) { 
-                                charFillColor = `rgb(${255 - rgbColor.r}, ${255 - rgbColor.g}, ${255 - rgbColor.b})`;
-                            } else {
-                                charFillColor = 'rgb(0,0,0)'; // Fallback
-                            }
-                        }
-                    }
-
-                    let currentDrawX = renderOffsetX + x * charCellWidth;
-                    let currentDrawY = renderOffsetY + y * charCellHeight + charBaselineOffset; 
-
-                    // Apply positional shader effects
-                    if (settings.effects.has('wave')) {
-                        const waveEffect = shaderEffects.wave(x, y, effectTime);
-                        currentDrawX += waveEffect.offsetX;
-                        currentDrawY += waveEffect.offsetY;
-                    }
-                    if (settings.effects.has('glitch') && Math.random() < 0.05) {
-                        currentDrawX += (Math.random() - 0.5) * (charCellWidth * 2); // Glitch relative to char size
-                        currentDrawY += (Math.random() - 0.5) * charCellHeight;
-                        if (Math.random() < 0.1) continue; // Skip drawing some chars for glitch
-                    }
-
-                    targetCtx.fillStyle = charFillColor;
-                    targetCtx.fillText(char, currentDrawX, currentDrawY);
-                }
-            }
-        }
-
-            applyPostProcessingEffects(time) {
-                // Effects that apply to the whole canvas after character drawing
-                if (this.settings.effects.has('scanline')) {
-                    const scanlineY = (time * 0.05 * this.settings.animationSpeed) % this.asciiCanvas.height;
-                    this.asciiCtx.globalCompositeOperation = 'overlay';
-                    this.asciiCtx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Darker scanlines
-                    this.asciiCtx.fillRect(0, scanlineY, this.asciiCanvas.width, 3);
-                    this.asciiCtx.globalCompositeOperation = 'source-over';
-                }
-                if (this.settings.effects.has('gradient')) {
-                    const gradient = this.asciiCtx.createLinearGradient(0, 0, this.asciiCanvas.width, this.asciiCanvas.height);
-                    gradient.addColorStop(0, this.settings.color);
-                    gradient.addColorStop(0.5, 'rgba(255,255,255,0.5)');
-                    gradient.addColorStop(1, this.settings.color);
-                    
-                    this.asciiCtx.globalCompositeOperation = 'multiply';
-                    this.asciiCtx.fillStyle = gradient;
-                    this.asciiCtx.fillRect(0, 0, this.asciiCanvas.width, this.asciiCanvas.height);
-                    this.asciiCtx.globalCompositeOperation = 'source-over';
-                }
-                 if (this.settings.effects.has('glitch')) {
-                    // Apply a more controlled full-canvas glitch effect
-                    if (Math.random() < 0.1) { // Apply glitch effect 10% of the time
-                        const stripCount = Math.floor(Math.random() * 5) + 3;
-                        for (let i = 0; i < stripCount; i++) {
-                            const y = Math.random() * this.asciiCanvas.height;
-                            const glitchHeight = Math.random() * 20 + 5;
-                            const offsetX = (Math.random() - 0.5) * 30;
-                            
-                            const imageData = this.asciiCtx.getImageData(0, y, this.asciiCanvas.width, glitchHeight);
-                            this.asciiCtx.clearRect(0, y, this.asciiCanvas.width, glitchHeight);
-                            this.asciiCtx.putImageData(imageData, offsetX, y);
-                        }
-                    }
-                }
-            }
-
-            startAnimation() {
-                if (this.animationFrameId) {
-                    cancelAnimationFrame(this.animationFrameId);
-                }
-                this.startTime = Date.now(); // Reset start time for effects
-                const animate = () => {
-                    if (!this.currentImage && !this.currentVideo) {
-                        // Stop animation if no media is loaded
-                        cancelAnimationFrame(this.animationFrameId);
-                        this.animationFrameId = null;
-                        return;
-                    }
-                    if (this.currentImage && this.settings.effects.size > 0) { // Only animate static image if effects are on
-                        this.convertToASCII(); 
-                    } else if (!this.currentVideo) {
-                        // If it's an image and no effects, no need to continuously animate
-                        cancelAnimationFrame(this.animationFrameId);
-                        this.animationFrameId = null;
-                        return;
-                    }
-                    // Video animation is handled by processVideoFrame
-                    if (this.currentImage) {
-                         this.animationFrameId = requestAnimationFrame(animate);
-                    }
-                };
-                // Only start animation loop if there are effects for an image, or if it's a video
-                if (this.currentImage && this.settings.effects.size > 0) {
-                    animate();
-                } else if (!this.currentImage && !this.currentVideo) {
-                     // If nothing is loaded, ensure placeholder is visible
-                    document.getElementById('noImagePlaceholder').textContent = 'Load an image or video to begin.';
-                    document.getElementById('noImagePlaceholder').style.display = 'block';
-                }
-            }
-
-            switchTab(tabName) {
-                document.querySelectorAll('.canvas-tab').forEach(tab => {
-                    tab.classList.toggle('active', tab.dataset.tab === tabName);
-                });
-                document.getElementById('originalCanvas').style.display = tabName === 'original' ? 'block' : 'none';
-                document.getElementById('asciiCanvas').style.display = tabName === 'ascii' ? 'block' : 'none';
-            }
-
-            updateStats() {
-                if (!this.currentImage && !this.currentVideo) {
-                    document.getElementById('stats').innerHTML = 'Ready to process...';
-                    return;
-                }
-                const sourceInfo = this.currentImage 
-                    ? `${this.currentImage.width}x${this.currentImage.height}px (Image)` 
-                    : this.currentVideo 
-                        ? `${this.currentVideo.videoWidth}x${this.currentVideo.videoHeight}px (Video)` 
-                        : 'N/A';
-                
-                const stats = document.getElementById('stats');
-                stats.innerHTML = `
-                    Source: ${sourceInfo} | 
-                    ASCII Res: ${this.settings.resolution}x${Math.floor(this.settings.resolution * (this.originalCanvas.height / this.originalCanvas.width) * 0.5)} | 
-                    Chars: ${this.charSets[this.settings.charSet].length}
-                `;
-            }
-
-            exportAsImage() {
-                if (!this.asciiCanvas || !this.asciiCanvas.width || !this.asciiCanvas.height) {
-                    console.error("Export failed: ASCII canvas not available or has no dimensions.");
-                    return;
-                }
-
-                const link = document.createElement('a');
-                const randomString = Math.random().toString(36).substring(2, 8);
-                link.download = `ascii-art-viewport-${this.asciiCanvas.width}x${this.asciiCanvas.height}-${randomString}.png`;
-                link.href = this.asciiCanvas.toDataURL('image/png');
-                link.click();
-            }
-
-            exportAsText() {
-                if (!this.originalCanvas.width || !this.originalCanvas.height) {
-                    alert('Please load an image or video first.');
-                    return;
-                }
-
-                const asciiWidth = this.settings.resolution;
-                const asciiHeight = Math.floor(asciiWidth * (this.originalCanvas.height / this.originalCanvas.width) * 0.5);
-                const charSet = this.charSets[this.settings.charSet] || this.charSets.simple;
-                const imageData = this.originalCtx.getImageData(0, 0, this.originalCanvas.width, this.originalCanvas.height);
-                const data = imageData.data;
-                let textOutput = '';
-
-                for (let y = 0; y < asciiHeight; y++) {
-                    for (let x = 0; x < asciiWidth; x++) {
-                        const canvasX = Math.floor(x * (this.originalCanvas.width / asciiWidth));
-                        const canvasY = Math.floor(y * (this.originalCanvas.height / asciiHeight));
-                        const i = (canvasY * this.originalCanvas.width + canvasX) * 4;
-                        
-                        let r = data[i];
-                        let g = data[i + 1];
-                        let b = data[i + 2];
-
-                        r = (r - 128) * this.settings.contrast + 128 + this.settings.brightness;
-                        g = (g - 128) * this.settings.contrast + 128 + this.settings.brightness;
-                        b = (b - 128) * this.settings.contrast + 128 + this.settings.brightness;
-                        r = Math.max(0, Math.min(255, r));
-                        g = Math.max(0, Math.min(255, g));
-                        b = Math.max(0, Math.min(255, b));
-
-                        let avg = (r + g + b) / 3;
-                        if (this.settings.inverted) avg = 255 - avg;
-                        
-                        const charIndex = Math.floor((avg / 255) * (charSet.length - 1));
-                        textOutput += charSet[charIndex];
-                    }
-                    textOutput += '\n';
-                }
-
-                navigator.clipboard.writeText(textOutput).then(() => {
-                    const effectPreview = document.getElementById('effectPreview');
-                    effectPreview.textContent = 'Text export copied to clipboard!';
-                    setTimeout(() => {
-                        effectPreview.textContent = 'Ready for ASCII conversion';
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Failed to copy text: ', err);
-                    alert('Failed to copy text. You may need to enable clipboard permissions or copy manually.');
-                });
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            new ASCIIConverter();
-        });
-
-    </script>
+<script src="index.js"></script>
 </body>
 </html>
