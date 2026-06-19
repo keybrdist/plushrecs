@@ -24,7 +24,7 @@ We welcome submissions, collaborations, and inquiries from artists and fans. To 
 
 ## 📜 License
 
-This project and its content are © 2024 Plush Recordings. All rights reserved.
+This project and its content are © 2026 Plush Recordings. All rights reserved.
 
 ---
 
